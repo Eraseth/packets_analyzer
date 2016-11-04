@@ -6,20 +6,27 @@
 
 # Variables
 CC = gcc
-CFLAGS = -lpcap
+PROJECT = Analyseur
+SRC = src
+DOUT = out
 TYPE = .out
+BIN = $(PROJECT)$(TYPE)
+OBJS = $(DOUT)/analyseur.o $(DOUT)/ethernet.o $(DOUT)/hexatram.o $(DOUT)/ip.o
+DEPS = inc/*.h
+INCLUDES = -I  $(DEPS)
+CFLAGS = -W -Wall -lpcap $(INCLUDE)
 
 # Création de l'executable Analyseur
-all: analyseur.o ethernet.o hexatram.o ip.o
-	$(CC) $^ -o Analyseur$(TYPE) $(CFLAGS) 
+all: $(OBJS)
+	$(CC) $^ -o $(BIN) $(CFLAGS) 
 
-%.o: %.c
+$(DOUT)/%.o: $(SRC)/%.c $(DEPS)
 	$(CC) -c $< -o $@ 
 
 # Suppression des fichiers temporaires
 clean:
-	rm -rf *.o rm -rf *.bak
+	rm -rf $(OBJS)
 
 # Suppression total (sauf les sources) pour un rebuild complet
 mrproper: clean
-	rm -rf Analyseur
+	rm -rf $(BIN)

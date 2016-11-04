@@ -19,6 +19,5 @@ int ethernet(const u_char *packet){
 	} else  if (ntohs(ethernet_head->ether_type) == ETHERTYPE_REVARP) {
 		printf("Type : Reverse ARP");
 	}
-	printf("\nNot IP paquet, END.\n");
 	return 0;
 }

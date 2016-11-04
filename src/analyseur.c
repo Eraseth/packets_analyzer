@@ -3,18 +3,15 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
-#include "ethernet.h"
-#include "hexatram.h"
-#include "ip.h"
+#include "../inc/ethernet.h"
+#include "../inc/hexatram.h"
+#include "../inc/ip.h"
 
 void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
 	const u_char *ip_header;
   const u_char *tcp_header;
-
-	int ip_hdr_length;
-	int tcp_hdr_length;
 
 	hexatram(header, packet); // Affiche la tram entièrement en Héxadecimal
 	ip_header = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
