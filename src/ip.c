@@ -44,6 +44,6 @@ int ip(const u_char *ip_header){
   }
 	printf("Checksum : %d\n", ip->check);
   printf("IP source : %s\n", inet_ntoa(*(struct in_addr*)&ip->saddr)); // --> "10.1.2.3"
-  printf("IP destination :%s\n", inet_ntoa(*(struct in_addr*)&ip->saddr)); // --> "10.1.2.3"
+  printf("IP destination : %s\n", inet_ntoa(*(struct in_addr*)&ip->daddr)); // --> "10.1.2.3"
   return ip_header_length;
 }

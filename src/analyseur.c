@@ -7,7 +7,7 @@
 #include "../inc/ethernet.h"
 #include "../inc/hexatram.h"
 #include "../inc/ip.h"
-#define OPT_LIST "i::o:f:v:"
+#define OPT_LIST "i: :o:f:v:"
 
 const char usage[] = "Usage :\n./Analyseur.out\n./Analyseur.out -i [interface] [-f filter] [-v 1..3]\n./Analyseur.out -o file [-f filter] [-v 1..3]\n";
 void callback(u_char *args, const struct pcap_pkthdr *header,
@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
   int optI = 0;
 
   checkOpt(argc, argv, &interface, &file, &filter, &verbose, &optI);
+  printf("%s\n", interface);
   //---Fin Opt---
 
   if (optI == 1) {
