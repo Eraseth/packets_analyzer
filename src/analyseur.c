@@ -7,9 +7,9 @@
 #include "../inc/ethernet.h"
 #include "../inc/hexatram.h"
 #include "../inc/ip.h"
-#define OPT_LIST "i: :o:f:v:"
+#define OPT_LIST "i:o:f:v:"
+#define USAGE "Usage :\n./Analyseur.out\n./Analyseur.out -i interface [-f filter] [-v 1..3]\n./Analyseur.out -o file [-f filter] [-v 1..3]\n"
 
-const char usage[] = "Usage :\n./Analyseur.out\n./Analyseur.out -i [interface] [-f filter] [-v 1..3]\n./Analyseur.out -o file [-f filter] [-v 1..3]\n";
 void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
@@ -25,62 +25,78 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
 	}
 }
 
-void checkOpt(int argc, char *argv[], char **interface, char **file, char **filter, char **verbose, int *optI){
+void* realloc_s (char **ptr, size_t taille)
+{
+  //Fonction de réallocation sécurisée
+  void *ptr_realloc = realloc(*ptr, taille);
+  if (ptr_realloc != NULL){
+    *ptr = ptr_realloc;
+  } else {
+    printf("Memroy error\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return ptr_realloc;
+
+}
+
+void free_opt(char *interface, char *file, char *filter, char *verbose){
+  free(interface);
+  free(file);
+  free(filter);
+  free(verbose);
+}
+
+void errorUsage(char *interface, char *file, char *filter, char *verbose){
+  fprintf (stderr, "%s", USAGE);
+  free_opt(interface, file, filter, verbose);
+  exit(EXIT_FAILURE);
+}
+
+void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter, char *verbose){
   int c;
 
   while ((c = getopt (argc, argv, OPT_LIST)) != -1)
    switch (c)
      {
      case 'i':
-       if (*file) {
-         fprintf (stderr, "%s", usage);
-         exit(EXIT_FAILURE);
+       if (strlen(file) > 0) {
+         //Option file déjà définit, erreur
+         errorUsage(interface, file, filter, verbose);
        }
-       *optI = 1;
-       if (optarg != NULL) {
-         *interface = optarg;
-       }
+       realloc_s(&interface, strlen(optarg) * sizeof(char));
+       strcpy(interface, optarg);
        break;
      case 'o':
-       if (*optI == 1) {
-         fprintf (stderr, "%s", usage);
-         exit(EXIT_FAILURE);
+       //Si l'option i à été renseigné, alors erreur
+       if (strlen(interface) > 0) {
+         errorUsage(interface, file, filter, verbose);
        }
-       *file = optarg;
+       realloc_s(&file, strlen(optarg) * sizeof(char));
+       strcpy(file, optarg);
        break;
      case 'f':
-       *filter = optarg;
+       realloc_s(&filter, strlen(optarg) * sizeof(char));
+       strcpy(filter, optarg);
        break;
      case 'v':
-       *verbose = optarg;
+       realloc_s(&verbose, strlen(optarg) * sizeof(char));
+       strcpy(verbose, optarg);
        break;
      case '?':
-       if (optopt == 'i') {
-       //L'option pour le -i n'a pas été définit
-            //Prendra l'interface par défaut
-       }
-       else if (optopt == 'o' || optopt == 'f' || optopt == 'v'){
-         fprintf (stderr, "%s", usage);
-         exit(EXIT_FAILURE);
+       if(optopt == 'i' || optopt == 'o' || optopt == 'f' || optopt == 'v'){
+         errorUsage(interface, file, filter, verbose);
        }
        else if (isprint (optopt)){
-         fprintf (stderr, "%s", usage);
-         exit(EXIT_FAILURE);
+         errorUsage(interface, file, filter, verbose);
        }
        else{
          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
-         fprintf (stderr, "%s", usage);
-         exit(EXIT_FAILURE);
+         errorUsage(interface, file, filter, verbose);
        }
      default:
        abort ();
      }
-
-     if (argc == 1) {
-       *optI = 1;
-       *interface = NULL;
-     }
-
 }
 
 int main(int argc, char *argv[])
@@ -89,26 +105,34 @@ int main(int argc, char *argv[])
   pcap_t *handle;
 
   //---Opt---
-  char *interface = NULL;
-  char *file = NULL;
-  char *filter = NULL;
-  char *verbose = NULL;
-  int optI = 0;
-
-  checkOpt(argc, argv, &interface, &file, &filter, &verbose, &optI);
-  printf("%s\n", interface);
+  char *interface = malloc(sizeof(char));
+  char *file = malloc(sizeof(char));
+  char *filter = malloc(sizeof(char));
+  char *verbose = malloc(sizeof(char));
+  int useDefaultInterface = 0;
+  //Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
+  if (argc > 1) {
+    checkOpt(argc, argv, interface, file, filter, verbose);
+  } else {
+    //Si aucune option utiliser l'interface par défaut
+    useDefaultInterface = 1;
+  }
   //---Fin Opt---
 
-  if (optI == 1) {
-  //Si l'option i est présente
+  printf("Interface : %s\n", interface);
+  printf("File : %s\n", file);
+  printf("Filter : %s\n", filter);
+  printf("Verbose : %s\n", verbose);
 
+  //Si aucun paramètre ou si interface renseigné
+  if (useDefaultInterface == 1 || strlen(interface) > 0) {
     //On vérifi si l'interface est spécifié
-    if(interface == NULL){
+    if(strlen(interface) == 0){
       //Sinon on prend l'interface par défaut
       interface = pcap_lookupdev(errbuf);
     }
 
-    if (interface == NULL) {
+    if (strlen(interface) == 0) {
       fprintf(stderr, "Impossible de trouver l'interface par défaut: %s\n", errbuf);
       exit(EXIT_FAILURE);
     }
@@ -122,24 +146,26 @@ int main(int argc, char *argv[])
     printf("----------NEW----------\n");
     printf("Interface: %s\n", interface);
 
-  } else if(file != NULL) {
+  } else if(strlen(file) > 0) {
   //Sinon si le fichier est renseigné (avec l'option o)
     handle = pcap_open_offline(file, errbuf);
     if (handle == NULL) {
       fprintf(stderr, "Couldn't open file %s: %s\n", file, errbuf);
-      return(2);
+      free_opt(interface, file, filter, verbose);
+      exit(EXIT_FAILURE);
     }
 
     printf("----------NEW----------\n");
     printf("File: %s\n", file);
 
   } else {
-    printf("ERROR : No file or interface.\n");
-    printf("%s", usage);
-    exit(EXIT_FAILURE);
+     //Sinon erreur
+     errorUsage(interface, file, filter, verbose);
+     exit(EXIT_FAILURE);
   }
 
   pcap_loop(handle, 0, callback, NULL);
+  free_opt(interface, file, filter, verbose);
 	return(0);
 
 }
