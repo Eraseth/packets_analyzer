@@ -11,17 +11,16 @@ SRC = src
 DOUT = out
 TYPE = .out
 BIN = $(PROJECT)$(TYPE)
-OBJS = $(DOUT)/analyseur.o $(DOUT)/ethernet.o $(DOUT)/hexatram.o $(DOUT)/ip.o
+OBJS = $(DOUT)/analyseur.o $(DOUT)/ethernet.o $(DOUT)/hexatram.o $(DOUT)/ip.o $(DOUT)/udp.o $(DOUT)/tcp.o $(DOUT)/icmp.o
 DEPS = inc/*.h
-INCLUDES = -I  $(DEPS)
-CFLAGS = -W -Wall -lpcap $(INCLUDE)
+CFLAGS = -W -Wall -lpcap
 
 # Création de l'executable Analyseur
 all: $(OBJS)
-	$(CC) $^ -o $(BIN) $(CFLAGS) 
+	$(CC) $^ -o $(BIN) $(CFLAGS)
 
 $(DOUT)/%.o: $(SRC)/%.c $(DEPS)
-	$(CC) -c $< -o $@ 
+	$(CC) -c $< -o $@
 
 # Suppression des fichiers temporaires
 clean:

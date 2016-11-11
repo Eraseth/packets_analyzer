@@ -7,21 +7,58 @@
 #include "../inc/ethernet.h"
 #include "../inc/hexatram.h"
 #include "../inc/ip.h"
+#include "../inc/udp.h"
+#include "../inc/tcp.h"
+#include "../inc/icmp.h"
 #define OPT_LIST "i:o:f:v:"
 #define USAGE "Usage :\n./Analyseur.out\n./Analyseur.out -i interface [-f filter] [-v 1..3]\n./Analyseur.out -o file [-f filter] [-v 1..3]\n"
 
 void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
+  static int nbPaquet = 0;
+  nbPaquet++;
+  printf("\nPacket N°%d ########################################################################\n", nbPaquet);
 	const u_char *ip_header;
-  const u_char *tcp_header;
+  const u_char *transport_header;
+  const u_char *app_header;
+  int transportProtocol = -1;
 
 	hexatram(header, packet); // Affiche la tram entièrement en Héxadecimal
 	ip_header = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
   // Affiche les valeurs de la couche ethernet
 	if (ethernet(packet)) {
     //Si c'est un paquet de type IP, alors continuer l'analyse
-	  ip(ip_header); // Affiche les valeurs de la couche réseau
+    int ipHdrLength = -1;
+    int tcpHdrLen = -1;
+
+	  ipHdrLength = ip(ip_header, &transportProtocol); // Affiche les valeurs de la couche réseau
+    if (ipHdrLength == -1) {
+      printf("Ip header length error.\n");
+      exit(EXIT_FAILURE);
+    }
+    transport_header = ip_header + ipHdrLength; //Décale jusqu'au début du de la couche transport
+    switch (transportProtocol) {
+      case 1:
+        //ICMP
+        icmp(transport_header);
+        //TODO Revoir ICMP !
+        break;
+      case 11:
+        //UDP
+        udp(transport_header);
+        app_header = packet + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
+        break;
+      case 6:
+        //TCP
+        tcpHdrLen = tcp(transport_header);
+        app_header = packet + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
+        break;
+      default:
+        printf("\n      Transport protocol doesn't supported.\n");
+        break;
+    }
+
 	}
 }
 
@@ -32,7 +69,7 @@ void* realloc_s (char **ptr, size_t taille)
   if (ptr_realloc != NULL){
     *ptr = ptr_realloc;
   } else {
-    printf("Memroy error\n");
+    printf("Realloc error\n");
     exit(EXIT_FAILURE);
   }
 
