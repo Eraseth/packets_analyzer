@@ -1,65 +1,71 @@
-#include <stdio.h>
-#include <pcap.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <string.h>
-#include "../inc/ethernet.h"
-#include "../inc/hexatram.h"
-#include "../inc/ip.h"
-#include "../inc/udp.h"
-#include "../inc/tcp.h"
-#include "../inc/icmp.h"
-#define OPT_LIST "i:o:f:v:"
-#define USAGE "Usage :\n./Analyseur.out\n./Analyseur.out -i interface [-f filter] [-v 1..3]\n./Analyseur.out -o file [-f filter] [-v 1..3]\n"
+#include "../inc/analyseur.h"
 
+int coloration = 0;
 void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
   static int nbPaquet = 0;
   nbPaquet++;
   printf("\nPacket N°%d ########################################################################\n", nbPaquet);
-	const u_char *ip_header;
+
+  //Les headers
+	const u_char *network_header;
   const u_char *transport_header;
   const u_char *app_header;
+
+  //Les protocoles
   int transportProtocol = -1;
+  int networkProtocol = -1;
 
-	hexatram(header, packet); // Affiche la tram entièrement en Héxadecimal
-	ip_header = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
-  // Affiche les valeurs de la couche ethernet
-	if (ethernet(packet)) {
-    //Si c'est un paquet de type IP, alors continuer l'analyse
-    int ipHdrLength = -1;
-    int tcpHdrLen = -1;
+  //La taille des protocoles (taille non fixe uniquement)
+  int ipHdrLength = -1;
+  int tcpHdrLen = -1;
 
-	  ipHdrLength = ip(ip_header, &transportProtocol); // Affiche les valeurs de la couche réseau
-    if (ipHdrLength == -1) {
-      printf("Ip header length error.\n");
-      exit(EXIT_FAILURE);
-    }
-    transport_header = ip_header + ipHdrLength; //Décale jusqu'au début du de la couche transport
-    switch (transportProtocol) {
-      case 1:
-        //ICMP
-        icmp(transport_header);
-        //TODO Revoir ICMP !
-        break;
-      case 11:
-        //UDP
-        udp(transport_header);
-        app_header = packet + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
-        break;
-      case 6:
-        //TCP
-        tcpHdrLen = tcp(transport_header);
-        app_header = packet + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
-        break;
-      default:
-        printf("\n      Transport protocol doesn't supported.\n");
-        break;
-    }
+	hexatram(header, packet, coloration); // Affiche la tram entièrement en Héxadecimal
+	network_header = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
 
-	}
+	ethernet(packet, &networkProtocol, coloration);  // Affiche les valeurs de la couche ethernet
+
+  switch (networkProtocol) {
+    case 0:
+      //IP
+  	  ipHdrLength = ip(network_header, &transportProtocol, coloration); // Affiche les valeurs de la couche réseau
+      if (ipHdrLength == -1) {
+        printf("Ip header length error.\n");
+        exit(EXIT_FAILURE);
+      }
+      transport_header = network_header + ipHdrLength; //Décale jusqu'au début du de la couche transport
+      switch (transportProtocol) {
+        case 1:
+          //ICMP
+          icmp(transport_header, coloration);
+          //TODO Revoir ICMP !
+          break;
+        case 11:
+          //UDP
+          udp(transport_header, coloration);
+          app_header = packet + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
+          break;
+        case 6:
+          //TCP
+          tcpHdrLen = tcp(transport_header, coloration);
+          app_header = packet + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
+          break;
+        default:
+          printf("\n      Transport protocol doesn't supported.\n");
+          break;
+      }
+      break;
+    case 6:
+      //ARP
+    case 35:
+      //RARP (REVERSE ARP)
+      arp(network_header, coloration);
+      break;
+    default:
+      printf("\nNetwork protocol doesn't supported.\n");
+      break;
+  }
 }
 
 void* realloc_s (char **ptr, size_t taille)
@@ -74,7 +80,6 @@ void* realloc_s (char **ptr, size_t taille)
   }
 
   return ptr_realloc;
-
 }
 
 void free_opt(char *interface, char *file, char *filter, char *verbose){
@@ -90,7 +95,7 @@ void errorUsage(char *interface, char *file, char *filter, char *verbose){
   exit(EXIT_FAILURE);
 }
 
-void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter, char *verbose){
+void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter, char *verbose, int *defaultInterface){
   int c;
 
   while ((c = getopt (argc, argv, OPT_LIST)) != -1)
@@ -105,10 +110,11 @@ void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter,
        strcpy(interface, optarg);
        break;
      case 'o':
-       //Si l'option i à été renseigné, alors erreur
+       //Si l'option i a été renseigné, alors erreur
        if (strlen(interface) > 0) {
          errorUsage(interface, file, filter, verbose);
        }
+       *defaultInterface = 0; //Option o renseigné, on utilise pas l'interface par défaut
        realloc_s(&file, strlen(optarg) * sizeof(char));
        strcpy(file, optarg);
        break;
@@ -120,8 +126,12 @@ void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter,
        realloc_s(&verbose, strlen(optarg) * sizeof(char));
        strcpy(verbose, optarg);
        break;
+     case 'c':
+       //Activé la coloration (Système unix uniquement)
+       coloration = 1;
+       break;
      case '?':
-       if(optopt == 'i' || optopt == 'o' || optopt == 'f' || optopt == 'v'){
+       if(optopt == 'i' || optopt == 'o' || optopt == 'f' || optopt == 'v' || optopt == 'c'){
          errorUsage(interface, file, filter, verbose);
        }
        else if (isprint (optopt)){
@@ -146,20 +156,24 @@ int main(int argc, char *argv[])
   char *file = malloc(sizeof(char));
   char *filter = malloc(sizeof(char));
   char *verbose = malloc(sizeof(char));
-  int useDefaultInterface = 0;
-  //Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
+  int useDefaultInterface = 1; //On utilise l'interface par défaut
+  /*Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
+  sinon on prend l'interface par défaut */
   if (argc > 1) {
-    checkOpt(argc, argv, interface, file, filter, verbose);
-  } else {
-    //Si aucune option utiliser l'interface par défaut
-    useDefaultInterface = 1;
+    checkOpt(argc, argv, interface, file, filter, verbose, &useDefaultInterface);
   }
   //---Fin Opt---
 
-  printf("Interface : %s\n", interface);
+  printf("\nInterface : %s\n", interface);
   printf("File : %s\n", file);
   printf("Filter : %s\n", filter);
-  printf("Verbose : %s\n", verbose);
+  printf("Verbose : %s\n\n", verbose);
+
+  if (useDefaultInterface) {
+    printf("Use default interface : %s\n\n", "Yes");
+  } else {
+    printf("Use default interface : %s\n\n", "No");
+  }
 
   //Si aucun paramètre ou si interface renseigné
   if (useDefaultInterface == 1 || strlen(interface) > 0) {

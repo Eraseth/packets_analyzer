@@ -3,6 +3,5 @@
 #define DEF_ETHERNET
 
 #define ETHERNET_LEN 14 //Taille de l'entête Ethernet
-int ethernet(const u_char *packet);
-
+void ethernet(const u_char *packet, int *networkProtocol, int coloration);
 #endif

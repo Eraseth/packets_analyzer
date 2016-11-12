@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
+#include "../inc/analyseur.h"
 
-void icmp(const u_char *transport_header){
-	printf("\n      ICMP\n");
+void icmp(const u_char *transport_header, int coloration){
+	if (coloration) {
+		printf(KCYN"\n      ICMP\n"KNRM);
+	} else {
+		printf("\n      ICMP\n");
+	}
+	
   printf("         %02X\n", transport_header[0]);
   printf("         %02X\n", transport_header[1]);
   printf("         %02X\n", transport_header[2]);
