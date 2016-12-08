@@ -1,17 +1,69 @@
 #include "../inc/analyseur.h"
 
 int coloration = 0;
+
+//---------------Gestion des protocoles------------------
+void handleTransportProtocol(int transportProtocol, const u_char *transportHeader){
+  //Les headers
+  const u_char *appHeader;
+  //Les port (pour connaître les protocoles applicatif)
+  int portD = -1;
+  int portS = -1;
+  //La taille des protocoles (taille non fixe uniquement)
+  int tcpHdrLen = -1;
+
+  switch (transportProtocol) {
+    case 1:
+      //ICMP
+      icmp(transportHeader);
+      //TODO Revoir ICMP !
+      break;
+    case 11:
+      //UDP
+      udp(transportHeader, &portD, &portS);
+      appHeader = transportHeader + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
+      handleAppProtocol(appHeader, portD, portS);
+      break;
+    case 6:
+      //TCP
+      tcpHdrLen = tcp(transportHeader, &portD, &portS);
+      appHeader = transportHeader + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
+      handleAppProtocol(appHeader, portD, portS);
+      break;
+    default:
+      if (coloration) {
+        printf(KCYN"\n      Transport protocol doesn't supported.\n"KNRM);
+      } else {
+        printf("\n      Transport protocol doesn't supported.\n");
+      }
+      break;
+  }
+}
+
+void handleAppProtocol(const u_char *appHeader, int portD, int portS){
+  //Test des protocoles applicatif avec le port destination
+  if (!switchPort(appHeader ,portD)) {
+    //Puis avec le port source
+    if (!switchPort(appHeader ,portS)) {
+      if (coloration) {
+        printf(KYEL"\n        Application protocol doesn't supported (Port dest : %d. Port source : %d).\n"KNRM, portD, portS);
+      } else {
+        printf("\n        Application protocol doesn't supported (Port dest : %d. Port source : %d).\n", portD, portS);
+      }
+    }
+  }
+}
+
 void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
-  static int nbPaquet = 0;
+  static uint nbPaquet = 0;
   nbPaquet++;
   printf("\nPacket N°%d ########################################################################\n", nbPaquet);
 
   //Les headers
-	const u_char *network_header;
-  const u_char *transport_header;
-  const u_char *app_header;
+	const u_char *networkHeader;
+  const u_char *transportHeader;
 
   //Les protocoles
   int transportProtocol = -1;
@@ -19,82 +71,40 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
 
   //La taille des protocoles (taille non fixe uniquement)
   int ipHdrLength = -1;
-  int tcpHdrLen = -1;
 
-	hexatram(header, packet, coloration); // Affiche la tram entièrement en Héxadecimal
-	network_header = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
+	hexatram(header, packet); // Affiche la tram entièrement en Héxadecimal
+	networkHeader = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
 
-	ethernet(packet, &networkProtocol, coloration);  // Affiche les valeurs de la couche ethernet
+	ethernet(packet, &networkProtocol);  // Affiche les valeurs de la couche ethernet
 
   switch (networkProtocol) {
     case 0:
       //IP
-  	  ipHdrLength = ip(network_header, &transportProtocol, coloration); // Affiche les valeurs de la couche réseau
+  	  ipHdrLength = ip(networkHeader, &transportProtocol); // Affiche les valeurs de la couche réseau
       if (ipHdrLength == -1) {
         printf("Ip header length error.\n");
         exit(EXIT_FAILURE);
       }
-      transport_header = network_header + ipHdrLength; //Décale jusqu'au début du de la couche transport
-      switch (transportProtocol) {
-        case 1:
-          //ICMP
-          icmp(transport_header, coloration);
-          //TODO Revoir ICMP !
-          break;
-        case 11:
-          //UDP
-          udp(transport_header, coloration);
-          app_header = packet + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
-          break;
-        case 6:
-          //TCP
-          tcpHdrLen = tcp(transport_header, coloration);
-          app_header = packet + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
-          break;
-        default:
-          printf("\n      Transport protocol doesn't supported.\n");
-          break;
-      }
+      transportHeader = networkHeader + ipHdrLength; //Décale jusqu'au début du de la couche transport
+      handleTransportProtocol(transportProtocol, transportHeader);
       break;
     case 6:
       //ARP
     case 35:
       //RARP (REVERSE ARP)
-      arp(network_header, coloration);
+      arp(networkHeader);
       break;
     default:
-      printf("\nNetwork protocol doesn't supported.\n");
+      if (coloration) {
+        printf(KWHT"\n    Network protocol doesn't supported.\n"KNRM);
+      } else {
+        printf("\n    Network protocol doesn't supported.\n");
+      }
       break;
   }
 }
 
-void* realloc_s (char **ptr, size_t taille)
-{
-  //Fonction de réallocation sécurisée
-  void *ptr_realloc = realloc(*ptr, taille);
-  if (ptr_realloc != NULL){
-    *ptr = ptr_realloc;
-  } else {
-    printf("Realloc error\n");
-    exit(EXIT_FAILURE);
-  }
-
-  return ptr_realloc;
-}
-
-void free_opt(char *interface, char *file, char *filter, char *verbose){
-  free(interface);
-  free(file);
-  free(filter);
-  free(verbose);
-}
-
-void errorUsage(char *interface, char *file, char *filter, char *verbose){
-  fprintf (stderr, "%s", USAGE);
-  free_opt(interface, file, filter, verbose);
-  exit(EXIT_FAILURE);
-}
-
+//---------------Gestion des options------------------
 void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter, char *verbose, int *defaultInterface){
   int c;
 
@@ -106,7 +116,7 @@ void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter,
          //Option file déjà définit, erreur
          errorUsage(interface, file, filter, verbose);
        }
-       realloc_s(&interface, strlen(optarg) * sizeof(char));
+       reallocS(&interface, strlen(optarg) * sizeof(char));
        strcpy(interface, optarg);
        break;
      case 'o':
@@ -115,15 +125,15 @@ void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter,
          errorUsage(interface, file, filter, verbose);
        }
        *defaultInterface = 0; //Option o renseigné, on utilise pas l'interface par défaut
-       realloc_s(&file, strlen(optarg) * sizeof(char));
+       reallocS(&file, strlen(optarg) * sizeof(char));
        strcpy(file, optarg);
        break;
      case 'f':
-       realloc_s(&filter, strlen(optarg) * sizeof(char));
+       reallocS(&filter, strlen(optarg) * sizeof(char));
        strcpy(filter, optarg);
        break;
      case 'v':
-       realloc_s(&verbose, strlen(optarg) * sizeof(char));
+       reallocS(&verbose, strlen(optarg) * sizeof(char));
        strcpy(verbose, optarg);
        break;
      case 'c':
@@ -146,6 +156,48 @@ void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter,
      }
 }
 
+//---------------Fonction utile------------------
+int switchPort(const u_char *appHeader, int port){
+  switch (port) {
+    //67 et 68
+    case DHCP: case DHCP2:
+      bootp(appHeader);
+      break;
+    default:
+      return 0;
+  }
+  return 1;
+}
+
+void* reallocS (char **ptr, size_t taille)
+{
+  //Fonction de réallocation sécurisée
+  void *ptr_realloc = realloc(*ptr, taille);
+  if (ptr_realloc != NULL){
+    *ptr = ptr_realloc;
+  } else {
+    printf("Realloc error\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return ptr_realloc;
+}
+
+void freeOpt(char *interface, char *file, char *filter, char *verbose){
+  free(interface);
+  free(file);
+  free(filter);
+  free(verbose);
+}
+
+void errorUsage(char *interface, char *file, char *filter, char *verbose){
+  fprintf (stderr, "%s", USAGE);
+  freeOpt(interface, file, filter, verbose);
+  exit(EXIT_FAILURE);
+}
+
+
+//---------------Main------------------
 int main(int argc, char *argv[])
 {
   char errbuf[PCAP_ERRBUF_SIZE];
@@ -170,7 +222,13 @@ int main(int argc, char *argv[])
   printf("Verbose : %s\n\n", verbose);
 
   if (useDefaultInterface) {
-    printf("Use default interface : %s\n\n", "Yes");
+    printf("Use default interface : %s\n", "Yes");
+  } else {
+    printf("Use default interface : %s\n", "No");
+  }
+
+  if (coloration) {
+    printf("Use coloration : %s\n\n", KRED"Yes"KNRM);
   } else {
     printf("Use default interface : %s\n\n", "No");
   }
@@ -202,7 +260,7 @@ int main(int argc, char *argv[])
     handle = pcap_open_offline(file, errbuf);
     if (handle == NULL) {
       fprintf(stderr, "Couldn't open file %s: %s\n", file, errbuf);
-      free_opt(interface, file, filter, verbose);
+      freeOpt(interface, file, filter, verbose);
       exit(EXIT_FAILURE);
     }
 
@@ -216,7 +274,6 @@ int main(int argc, char *argv[])
   }
 
   pcap_loop(handle, 0, callback, NULL);
-  free_opt(interface, file, filter, verbose);
+  freeOpt(interface, file, filter, verbose);
 	return(0);
-
 }

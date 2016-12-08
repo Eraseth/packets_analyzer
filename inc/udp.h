@@ -2,7 +2,7 @@
 
 #define DEF_UDP
 
-#define UDP_LEN 8 //Length of UDP header : 8 bytes
-void udp(const u_char *transport_header, int coloration);
+#define UDP_LEN 8 //UDP Header Length
+void udp(const u_char *transportHeader, int *portD, int *portS);
 
 #endif

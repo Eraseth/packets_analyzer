@@ -3,14 +3,14 @@
 #include <arpa/inet.h>
 #include "../inc/analyseur.h"
 
-void arp(const u_char *network_header, int coloration){
+void arp(const u_char *networkHeader){
 	if (coloration) {
-		printf(KWHT"\n    (R)ARP\n"KNRM);
+		printf(KWHT"\n    (R)ARP\n");
 	} else {
 		printf("\n    (R)ARP\n");
 	}
 
-	const struct arphdr *arp = (const struct arphdr *) network_header;
+	const struct arphdr *arp = (const struct arphdr *) networkHeader;
 
 	switch (ntohs(arp->ar_hrd)) {
 		case ARPHRD_ETHER:
@@ -20,12 +20,12 @@ void arp(const u_char *network_header, int coloration){
 			printf("      |-Hardware Type : %s (%d)\n", "Inconnu", ntohs(arp->ar_op));
 			break;
 	}
-	switch (arp->ar_pro) {
-		case 8:
-			printf("      |-Protocol Type : %s (%d)\n", "IP", arp->ar_pro);
+	switch (ntohs(arp->ar_pro)) {
+		case 0x0800:
+			printf("      |-Protocol Type : %s (0x%04x)\n", "IP", ntohs(arp->ar_pro));
 			break;
 		default:
-			printf("      |-Protocol Type : %s (%d)\n", "Inconnu", arp->ar_pro);
+			printf("      |-Protocol Type : %s (0x%04x)\n", "Inconnu", ntohs(arp->ar_pro));
 			break;
 	}
 	printf("      |-Hardware size : %d\n", arp->ar_hln);
@@ -49,6 +49,10 @@ void arp(const u_char *network_header, int coloration){
 		default:
 			printf("      |-ARP Operation : %s (%d)\n", "Inconnu", ntohs(arp->ar_op));
 			break;
+	}
+
+	if (coloration) {
+		printf(KNRM);
 	}
 
 	// printf("      |-Sender MAC Address : %d\n", arp->ar_sha);

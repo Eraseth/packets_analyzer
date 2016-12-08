@@ -2,6 +2,6 @@
 
 #define DEF_ARP
 
-void arp(const u_char *network_header, int coloration);
+void arp(const u_char *networkHeader);
 
 #endif

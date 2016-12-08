@@ -3,16 +3,16 @@
 #include <arpa/inet.h>
 #include "../inc/analyseur.h"
 
-int ip(const u_char *network_header, int *transportProtocol, int coloration){
+int ip(const u_char *networkHeader, int *transportProtocol){
 	if (coloration) {
-		printf(KWHT"\n    IP\n"KNRM);
+		printf(KWHT"\n    IP\n");
 	} else {
 		printf("\n    IP\n");
 	}
 
 	int ipHdrLength = -1;
 
-	const struct iphdr *ip = (const struct iphdr *) network_header;
+	const struct iphdr *ip = (const struct iphdr *) networkHeader;
 	struct in_addr sin_addr;
   char straddr[INET_ADDRSTRLEN];
 	//Taille de l'entête IP en octets = IHL * 4
@@ -22,7 +22,7 @@ int ip(const u_char *network_header, int *transportProtocol, int coloration){
 	printf("      |-Type of service   : %d\n", ip->tos);
 	printf("      |-Total length      : %d\n", ntohs(ip->tot_len));
 	printf("      |-Identification    : %d\n", ntohs(ip->id));
-	printf("      |-Position fragment : %d\n", ip->frag_off);
+	printf("      |-Position fragment : %d\n", ntohs(ip->frag_off));
 	printf("      |-TTL               : %d\n", ip->ttl);
   switch (ip->protocol) {
     case IPPROTO_ICMP:
@@ -55,5 +55,8 @@ int ip(const u_char *network_header, int *transportProtocol, int coloration){
 	printf("      |-Checksum          : %d\n", ntohs(ip->check));
   printf("      |-IP source         : %s\n", inet_ntoa(*(struct in_addr*)&ip->saddr)); // --> "10.1.2.3"
   printf("      |-IP destination    : %s\n", inet_ntoa(*(struct in_addr*)&ip->daddr)); // --> "10.1.2.3"
+	if (coloration) {
+		printf(KNRM);
+	}
   return ipHdrLength;
 }

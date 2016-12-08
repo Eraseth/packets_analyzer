@@ -3,21 +3,21 @@
 #include <arpa/inet.h>
 #include "../inc/analyseur.h"
 
-void icmp(const u_char *transport_header, int coloration){
+void icmp(const u_char *transportHeader){
 	if (coloration) {
-		printf(KCYN"\n      ICMP\n"KNRM);
+		printf(KCYN"\n      ICMP\n");
 	} else {
 		printf("\n      ICMP\n");
 	}
-	
-  printf("         %02X\n", transport_header[0]);
-  printf("         %02X\n", transport_header[1]);
-  printf("         %02X\n", transport_header[2]);
-  printf("         %02X\n", transport_header[3]);
-  printf("         %02X\n", transport_header[4]);
-  printf("         %02X\n", transport_header[5]);
-  printf("         %02X\n", transport_header[6]);
-	const struct icmphdr *icmp = (const struct icmphdr *) transport_header;
+
+  printf("         %02X\n", transportHeader[0]);
+  printf("         %02X\n", transportHeader[1]);
+  printf("         %02X\n", transportHeader[2]);
+  printf("         %02X\n", transportHeader[3]);
+  printf("         %02X\n", transportHeader[4]);
+  printf("         %02X\n", transportHeader[5]);
+  printf("         %02X\n", transportHeader[6]);
+	const struct icmphdr *icmp = (const struct icmphdr *) transportHeader;
   switch (icmp->type) {
     case ICMP_ECHO:
       printf("         |-Type : %s (%d)\n", "ICMP Echo Request", ICMP_ECHO);
@@ -52,4 +52,7 @@ void icmp(const u_char *transport_header, int coloration){
       printf("         |-Code : %s (%d)\n", "Inconnu (see https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)", icmp->code);
   }
 	printf("         |-Checksum : %d\n", ntohs(icmp->checksum));
+	if (coloration) {
+		printf(KNRM);
+	}
 }

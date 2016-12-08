@@ -2,10 +2,10 @@
 #include <pcap.h>
 #include "../inc/analyseur.h"
 
-void hexatram(const struct pcap_pkthdr *header, const u_char *packet, int coloration){
+void hexatram(const struct pcap_pkthdr *header, const u_char *packet){
 	int i;
 	if (coloration) {
-		printf(KRED"\nPACKET\n"KNRM);
+		printf(KRED"\nPACKET\n");
 	} else {
 		printf("\nPACKET\n");
 	}
@@ -16,4 +16,7 @@ void hexatram(const struct pcap_pkthdr *header, const u_char *packet, int colora
     printf("%02X", packet[i]);
 	}
 	printf("\n\n");
+	if (coloration) {
+		printf(KNRM);
+	}
 }
