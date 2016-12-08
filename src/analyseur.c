@@ -169,7 +169,7 @@ int switchPort(const u_char *appHeader, int port){
   return 1;
 }
 
-void* reallocS (char **ptr, size_t taille)
+void* reallocS(char **ptr, size_t taille)
 {
   //Fonction de réallocation sécurisée
   void *ptr_realloc = realloc(*ptr, taille);

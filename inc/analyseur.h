@@ -45,7 +45,7 @@ extern int coloration;
 void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter, char *verbose, int *defaultInterface);
 void errorUsage(char *interface, char *file, char *filter, char *verbose);
 void freeOpt(char *interface, char *file, char *filter, char *verbose);
-void* realloS(char **ptr, size_t taille);
+void* reallocS(char **ptr, size_t taille);
 void callback(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void handleTransportProtocol(int transportProtocol, const u_char *transportHeader);
 void handleAppProtocol(const u_char *appHeader, int portD, int portS);
