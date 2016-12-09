@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
-#include "../inc/analyseur.h"
+#include "../../inc/analyseur.h"
 
 int tcp(const u_char *transportHeader, int *portD, int *portS){
 	if (coloration) {
@@ -32,7 +32,7 @@ int tcp(const u_char *transportHeader, int *portD, int *portS){
 
 	*portD = ntohs(tcp->dest);
 	*portS = ntohs(tcp->source);
-	
+
 	if (coloration) {
 		printf(KNRM);
 	}

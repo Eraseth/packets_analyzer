@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
-#include "../inc/analyseur.h"
+#include "../../inc/analyseur.h"
 
 void icmp(const u_char *transportHeader){
 	if (coloration) {

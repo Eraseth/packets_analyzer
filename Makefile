@@ -11,7 +11,7 @@ SRC = src
 DOUT = out
 TYPE = .out
 BIN = $(PROJECT)$(TYPE)
-OBJS = $(DOUT)/analyseur.o $(DOUT)/ethernet.o $(DOUT)/hexatram.o $(DOUT)/ip.o $(DOUT)/udp.o $(DOUT)/tcp.o $(DOUT)/icmp.o $(DOUT)/arp.o $(DOUT)/bootp.o
+OBJS = $(DOUT)/analyseur.o $(DOUT)/datalink/ethernet.o $(DOUT)/hexatram.o $(DOUT)/network/ip.o $(DOUT)/transport/udp.o $(DOUT)/transport/tcp.o $(DOUT)/application/icmp.o $(DOUT)/network/arp.o $(DOUT)/application/bootp.o
 DEPS = inc/*.h
 CFLAGS = -W -Wall -lpcap
 

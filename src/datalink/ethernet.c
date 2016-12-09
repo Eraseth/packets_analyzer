@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <netinet/ether.h>
 #include <arpa/inet.h>
-#include "../inc/analyseur.h"
+#include "../../inc/analyseur.h"
 
 
 void ethernet(const u_char *packet, int *networkProtocol){

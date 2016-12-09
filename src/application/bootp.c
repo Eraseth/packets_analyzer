@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <netinet/ether.h>
-#include "../inc/analyseur.h"
+#include "../../inc/analyseur.h"
 //Inclure la structure pour bootp
-#include "../bootp.h"
+#include "../../bootp.h"
 
 void bootp(const u_char *appHeader){
 	if (coloration) {
@@ -43,7 +43,8 @@ int testMagicCookie(const u_int8_t *bp_vend){
 	int magicCookie[4] = {99, 130, 83, 99};
 	int testDhcp = 1; //Par défaut DHCP
 	printf("           |-Vendor specific        : 0x");
-	for (size_t i = 0; i < 4; i++) {
+	size_t i;
+	for (i = 0; i < 4; i++) {
 		printf("%02x", bp_vend[i]);
 		if (magicCookie[i] != bp_vend[i]) {
 			testDhcp = 0;

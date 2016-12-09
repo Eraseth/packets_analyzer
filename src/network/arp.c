@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <net/if_arp.h>
 #include <arpa/inet.h>
-#include "../inc/analyseur.h"
+#include "../../inc/analyseur.h"
 
 void arp(const u_char *networkHeader){
 	if (coloration) {

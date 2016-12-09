@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
-#include "../inc/analyseur.h"
+#include "../../inc/analyseur.h"
 
 int ip(const u_char *networkHeader, int *transportProtocol){
 	if (coloration) {
