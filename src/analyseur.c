@@ -5,7 +5,7 @@ int coloration = 0;
 //---------------Gestion des protocoles------------------
 void handleTransportProtocol(int transportProtocol, const u_char *transportHeader){
   //Les headers
-  const u_char *appHeader;
+  const u_char *appData;
   //Les port (pour connaître les protocoles applicatif)
   int portD = -1;
   int portS = -1;
@@ -21,14 +21,14 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
     case 11:
       //UDP
       udp(transportHeader, &portD, &portS);
-      appHeader = transportHeader + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
-      handleAppProtocol(appHeader, portD, portS);
+      appData = transportHeader + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
+      handleAppProtocol(appData, portD, portS);
       break;
     case 6:
       //TCP
       tcpHdrLen = tcp(transportHeader, &portD, &portS);
-      appHeader = transportHeader + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
-      handleAppProtocol(appHeader, portD, portS);
+      appData = transportHeader + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
+      handleAppProtocol(appData, portD, portS);
       break;
     default:
       if (coloration) {
@@ -40,11 +40,11 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
   }
 }
 
-void handleAppProtocol(const u_char *appHeader, int portD, int portS){
+void handleAppProtocol(const u_char *appData, int portD, int portS){
   //Test des protocoles applicatif avec le port destination
-  if (!switchPort(appHeader ,portD)) {
+  if (!switchPort(appData ,portD)) {
     //Puis avec le port source
-    if (!switchPort(appHeader ,portS)) {
+    if (!switchPort(appData ,portS)) {
       if (coloration) {
         printf(KYEL"\n        Application protocol doesn't supported (Port dest : %d. Port source : %d).\n"KNRM, portD, portS);
       } else {
@@ -157,11 +157,14 @@ void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter,
 }
 
 //---------------Fonction utile------------------
-int switchPort(const u_char *appHeader, int port){
+int switchPort(const u_char *appData, int port){
   switch (port) {
     //67 et 68
     case DHCP: case DHCP2:
-      bootp(appHeader);
+      bootp(appData);
+      break;
+    case HTTP:
+      http(appData);
       break;
     default:
       return 0;

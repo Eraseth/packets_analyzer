@@ -35,6 +35,7 @@
 #define POP 110
 #define FTPC 21
 #define FTPD 20
+#define HTTP 80
 
 
 #define OPT_LIST "i:o:f:v:c::"
@@ -48,6 +49,6 @@ void freeOpt(char *interface, char *file, char *filter, char *verbose);
 void* reallocS(char **ptr, size_t taille);
 void callback(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void handleTransportProtocol(int transportProtocol, const u_char *transportHeader);
-void handleAppProtocol(const u_char *appHeader, int portD, int portS);
-int switchPort(const u_char *appHeader, int port);
+void handleAppProtocol(const u_char *appData, int portD, int portS);
+int switchPort(const u_char *appData, int port);
 #endif

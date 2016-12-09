@@ -1,5 +1,5 @@
 #ifndef DEF_HTTP
 
 #define DEF_HTTP
-void http(const u_char *appHeader);
+void http(const u_char *appData);
 #endif
