@@ -11,9 +11,13 @@ SRC = src
 DOUT = out
 TYPE = .out
 BIN = $(PROJECT)$(TYPE)
-OBJS = $(DOUT)/analyseur.o $(DOUT)/ethernet.o $(DOUT)/hexatram.o $(DOUT)/ip.o $(DOUT)/udp.o $(DOUT)/tcp.o $(DOUT)/icmp.o $(DOUT)/arp.o $(DOUT)/bootp.o $(DOUT)/http.o
+OBJS = $(DOUT)/analyseur.o $(DOUT)/utils.o $(DOUT)/datalink/ethernet.o $(DOUT)/hexatram.o\
+$(DOUT)/network/ip.o $(DOUT)/transport/udp.o $(DOUT)/transport/tcp.o $(DOUT)/application/icmp.o\
+$(DOUT)/network/arp.o $(DOUT)/application/bootp.o $(DOUT)/application/http.o $(DOUT)/application/pop.o\
+$(DOUT)/application/imap.o $(DOUT)/application/smtp.o
 DEPS = inc/*.h
 CFLAGS = -W -Wall -lpcap
+TESTFILE = -o testFiles/Http/http.cap -f filtre -c -v 2
 
 # Création de l'executable Analyseur
 all: $(OBJS)
@@ -31,4 +35,4 @@ mrproper: clean
 	rm -rf $(BIN)
 
 valgrind:
-	valgrind --leak-check=yes ./$(BIN)
+	valgrind --leak-check=yes ./$(BIN) $(TESTFILE)

@@ -5,9 +5,9 @@
 void hexatram(const struct pcap_pkthdr *header, const u_char *packet){
 	int i;
 	if (coloration) {
-		printf(KRED"\nPACKET\n");
+		printT(1, 0, KRED"PACKET");
 	} else {
-		printf("\nPACKET\n");
+		printT(1, 0, "PACKET");
 	}
 
 	for (i = 0; i < header->len; i++)

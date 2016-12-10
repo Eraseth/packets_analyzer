@@ -8,6 +8,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdarg.h>
+#include "utils.h"
 #include "ethernet.h"
 #include "hexatram.h"
 #include "ip.h"
@@ -17,6 +19,9 @@
 #include "bootp.h"
 #include "tcp.h"
 #include "http.h"
+#include "imap.h"
+#include "pop.h"
+#include "smtp.h"
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -43,12 +48,8 @@
 
 extern int coloration;
 
-void checkOpt(int argc, char *argv[], char *interface, char *file, char *filter, char *verbose, int *defaultInterface);
-void errorUsage(char *interface, char *file, char *filter, char *verbose);
-void freeOpt(char *interface, char *file, char *filter, char *verbose);
-void* reallocS(char **ptr, size_t taille);
 void callback(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
-void handleTransportProtocol(int transportProtocol, const u_char *transportHeader);
-void handleAppProtocol(const u_char *appData, int portD, int portS);
-int switchPort(const u_char *appData, int port);
+void handleTransportProtocol(int transportProtocol, const u_char *transportHeader, int *dataLength);
+void handleAppProtocol(const u_char *appData, int portD, int portS, int dataLength);
+int switchPort(const u_char *appData, int port, const int dataLength);
 #endif
