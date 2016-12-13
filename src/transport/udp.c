@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <netinet/udp.h>
-#include <arpa/inet.h>
 #include "../../inc/analyseur.h"
 
 void udp(const u_char *transportHeader, int *portD, int *portS){

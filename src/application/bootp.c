@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <arpa/inet.h>
 #include <netinet/ether.h>
 #include "../../inc/analyseur.h"
 //Inclure la structure pour bootp

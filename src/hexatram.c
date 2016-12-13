@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <pcap.h>
 #include "../inc/analyseur.h"
 
 void hexatram(const struct pcap_pkthdr *header, const u_char *packet){

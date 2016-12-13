@@ -1,4 +1,5 @@
 #include "../inc/utils.h"
+#include <netinet/tcp.h>
 
 void printT(const int jump, const int space, const char *msg, ...){
   va_list vargs;
@@ -10,9 +11,23 @@ void printT(const int jump, const int space, const char *msg, ...){
   va_end(vargs);
 }
 
-void printAscii(const int dataLength, const char *data){
+void printAscii(const int dataLength, const char *data, const uint8_t flagsT){
+
   if (dataLength <= 0) {
-    printT(1, 10, "No data (data length <= 0)\n");
+    printT(1, 10, "No data");
+
+    if (flagsT != -1) {
+
+      uint8_t ackF = (flagsT & TH_ACK) ? 1 : 0;
+      uint8_t finF = (flagsT & TH_FIN) ? 1 : 0;
+      if (finF) {
+        printT(0, 0, " : FINISH TCP");
+      } else if (ackF) {
+        printT(0, 0, " : ACK TCP");
+      }
+    }
+
+    printT(1, 0, "");
   } else {
     printT(0, 10, "Warning: Unsupported characters are not displayed.\n\n");
     size_t i;
@@ -51,7 +66,7 @@ void printParam(const char* interface, const char* file, const char* filter, con
   if (verbose != NULL) {
     printT(0, 0, "Verbose : %s\n", verbose);
   } else {
-    printT(0, 0, "Verbose : %s\n", "Not used");
+    printT(0, 0, "Verbose : %s\n", "Default (3 - Full)");
   }
 }
 

@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
+#include <arpa/inet.h>
+
 #include "utils.h"
 #include "ethernet.h"
 #include "hexatram.h"
@@ -22,6 +24,8 @@
 #include "imap.h"
 #include "pop.h"
 #include "smtp.h"
+#include "ftp.h"
+#include "telnet.h"
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -40,6 +44,7 @@
 #define POP 110
 #define FTPC 21
 #define FTPD 20
+#define TELNET 23
 #define HTTP 80
 
 
@@ -49,7 +54,7 @@
 extern int coloration;
 
 void callback(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
-void handleTransportProtocol(int transportProtocol, const u_char *transportHeader, int *dataLength);
-void handleAppProtocol(const u_char *appData, int portD, int portS, int dataLength);
-int switchPort(const u_char *appData, int port, const int dataLength);
+void handleTransportProtocol(int transportProtocol, const u_char *transportHeader);
+void handleAppProtocol(const u_char *appData, int portD, int portS);
+int switchPort(const u_char *appData, int port);
 #endif

@@ -1,9 +1,11 @@
 #include "../inc/analyseur.h"
 
 int coloration = 0;
+uint8_t flagsT = -1; //Les flags TCP
+int dataLength = -1; //La taille des données
 
 //---------------Gestion des protocoles------------------
-void handleTransportProtocol(int transportProtocol, const u_char *transportHeader, int *dataLength){
+void handleTransportProtocol(int transportProtocol, const u_char *transportHeader){
   //Les headers
   const u_char *appData;
   //Les port (pour connaître les protocoles applicatif)
@@ -11,10 +13,11 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
   int portS = -1;
   //La taille des protocoles (taille non fixe uniquement)
   int tcpHdrLen = -1;
+  flagsT = -1;
 
   switch (transportProtocol) {
     case 1:
-      //ICMP
+      //ICMP (n'est pas un protcole de transport)
       icmp(transportHeader);
       //TODO Revoir ICMP !
       break;
@@ -22,18 +25,18 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
       //UDP
       udp(transportHeader, &portD, &portS);
       appData = transportHeader + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
-      *dataLength -= UDP_LEN;
-      handleAppProtocol(appData, portD, portS, *dataLength);
+      dataLength -= UDP_LEN;
+      handleAppProtocol(appData, portD, portS);
       break;
     case 6:
       //TCP
-      tcpHdrLen = tcp(transportHeader, &portD, &portS, dataLength);
+      tcpHdrLen = tcp(transportHeader, &portD, &portS, &dataLength, &flagsT);
       if (tcpHdrLen <= 0) {
         printT(0,0, "TCP header length error.\n");
         exit(EXIT_FAILURE);
       }
       appData = transportHeader + tcpHdrLen; //Décale au début de la couche session/presentation/applicatif
-      handleAppProtocol(appData, portD, portS, *dataLength);
+      handleAppProtocol(appData, portD, portS);
       break;
     default:
       if (coloration) {
@@ -46,11 +49,11 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
 
 }
 
-void handleAppProtocol(const u_char *appData, int portD, int portS, int dataLength){
+void handleAppProtocol(const u_char *appData, int portD, int portS){
   //Test des protocoles applicatif avec le port destination
-  if (!switchPort(appData ,portD, dataLength)) {
+  if (!switchPort(appData ,portD)) {
     //Puis avec le port source
-    if (!switchPort(appData ,portS, dataLength)) {
+    if (!switchPort(appData ,portS)) {
       if (coloration) {
         printT(1, 8, KYEL"Application protocol doesn't supported (Port dest : %d. Port source : %d).\n"KNRM, portD, portS);
       } else {
@@ -60,23 +63,29 @@ void handleAppProtocol(const u_char *appData, int portD, int portS, int dataLeng
   }
 }
 
-int switchPort(const u_char *appData, int port, const int dataLength){
+int switchPort(const u_char *appData, const int port){
   switch (port) {
     //67 et 68
     case DHCP: case DHCP2:
       bootp(appData);
       break;
     case HTTP:
-      http(appData, dataLength);
+      http(appData, dataLength, flagsT);
       break;
     case SMTP:
-      smtp(appData, dataLength);
+      smtp(appData, dataLength, flagsT);
       break;
     case POP:
-      pop(appData, dataLength);
+      pop(appData, dataLength, flagsT);
       break;
     case IMAP:
-      imap(appData, dataLength);
+      imap(appData, dataLength, flagsT);
+      break;
+    case FTPC: case FTPD:
+      ftp(appData, dataLength, flagsT);
+      break;
+    case TELNET:
+      telnet(appData, dataLength, flagsT);
       break;
     default:
       return 0;
@@ -101,7 +110,6 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
 
   //La taille des protocoles (taille non fixe uniquement)
   int ipHdrLength = -1;
-  int dataLength = -1; //La taille des données
 
 	hexatram(header, packet); // Affiche la tram entièrement en Héxadecimal
 	networkHeader = packet + ETHERNET_LEN; //Décale jusqu'au début du packet IP
@@ -116,7 +124,7 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
         exit(EXIT_FAILURE);
       }
       transportHeader = networkHeader + ipHdrLength; //Décale jusqu'au début du de la couche transport
-      handleTransportProtocol(transportProtocol, transportHeader, &dataLength);
+      handleTransportProtocol(transportProtocol, transportHeader);
       break;
     case 6:
       //ARP
