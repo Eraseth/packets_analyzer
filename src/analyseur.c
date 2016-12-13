@@ -97,7 +97,12 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
   static uint nbPaquet = 0;
+  int limitePacket = -1;
   nbPaquet++;
+  if (limitePacket != -1 && nbPaquet > limitePacket) {
+    printT(1, 0, "");
+    exit(0);
+  }
   printT(1, 0, "Packet N°%d ########################################################################\n", nbPaquet);
 
   //Les headers

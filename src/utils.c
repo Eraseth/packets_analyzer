@@ -11,7 +11,7 @@ void printT(const int jump, const int space, const char *msg, ...){
   va_end(vargs);
 }
 
-void printAscii(const int dataLength, const char *data, const uint8_t flagsT){
+void printAscii(const int dataLength, const unsigned char *data, const uint8_t flagsT){
 
   if (dataLength <= 0) {
     printT(1, 10, "No data");
@@ -20,7 +20,11 @@ void printAscii(const int dataLength, const char *data, const uint8_t flagsT){
 
       uint8_t ackF = (flagsT & TH_ACK) ? 1 : 0;
       uint8_t finF = (flagsT & TH_FIN) ? 1 : 0;
-      if (finF) {
+      uint8_t synF = (flagsT & TH_SYN) ? 1 : 0;
+
+      if (synF) {
+        printT(0, 0, " : SYN TCP");
+      } else if (finF) {
         printT(0, 0, " : FINISH TCP");
       } else if (ackF) {
         printT(0, 0, " : ACK TCP");
