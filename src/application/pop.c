@@ -7,8 +7,7 @@ void pop(const u_char *appData, const int dataLength, const uint8_t flagsT){
 	} else {
 		printT(1, 8, "POP\n");
 	}
-	char *popData = strndup((const char *) appData, dataLength);
-	printAscii(dataLength, popData, flagsT);
+	printAscii(dataLength, appData, flagsT);
 	if (coloration) {
 		printT(0, 0, KNRM);
 	}

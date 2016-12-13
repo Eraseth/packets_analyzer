@@ -8,8 +8,7 @@ void http(const u_char *appData, const int dataLength, const uint8_t flagsT){
 		printT(1, 8, "HTTP\n");
 	}
 	char *httpData = NULL;
-	httpData = strndup((const char *) appData, dataLength);
-	printAscii(dataLength, httpData, flagsT);
+	printAscii(dataLength, appData, flagsT);
 	if (coloration) {
 		printT(0, 0, KNRM);
 	}

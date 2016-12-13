@@ -13,6 +13,7 @@
 #define EL 248
 #define GA 249
 #define SB 250
+#define SBEND 240
 #define WILL 251
 #define WONT 252
 #define DO 253
@@ -29,8 +30,8 @@
 #define NEV 39
 
 void telnet(const u_char *appData, const int dataLength, const uint8_t flagsT);
-void switchCtrl(const unsigned char c);
-void switchSubCtrl(const unsigned char c);
+int switchCtrl(const unsigned char c);
+int switchSubCtrl(const unsigned char c);
 void printTelnet(const int dataLength, const unsigned char *data, const uint8_t flagsT);
 
 #endif

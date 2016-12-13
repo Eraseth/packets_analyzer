@@ -7,8 +7,7 @@ void ftp(const u_char *appData, const int dataLength, const uint8_t flagsT){
 	} else {
 		printT(1, 8, "FTP\n");
 	}
-	char *ftpData = strndup((const char *) appData, dataLength);
-	printAscii(dataLength, ftpData, flagsT);
+	printAscii(dataLength, appData, flagsT);
 	if (coloration) {
 		printT(0, 0, KNRM);
 	}

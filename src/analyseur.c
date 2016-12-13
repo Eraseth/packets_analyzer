@@ -1,5 +1,7 @@
 #include "../inc/analyseur.h"
 
+int verbose = -1;
+int limite = -1;
 int coloration = 0;
 uint8_t flagsT = -1; //Les flags TCP
 int dataLength = -1; //La taille des données
@@ -97,10 +99,14 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
   static uint nbPaquet = 0;
-  int limitePacket = -1;
   nbPaquet++;
-  if (limitePacket != -1 && nbPaquet > limitePacket) {
-    printT(1, 0, "");
+  if (limite == 0) {
+    printT(1, 0, "Warning : Limit of 0. (bad param)\n\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (limite != -1 && nbPaquet > limite) {
+    printT(1, 0, "Limit reached. End\n\n");
     exit(0);
   }
   printT(1, 0, "Packet N°%d ########################################################################\n", nbPaquet);
@@ -157,9 +163,7 @@ int main(int argc, char *argv[])
   char *interface = NULL;
   char *file = NULL;
   char *filter = NULL;
-  char *verbose = NULL;
   int useDefaultInterface = 1; //On utilise l'interface par défaut
-
   /*Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
   sinon on prend l'interface par défaut */
   if (argc > 1) {
@@ -169,7 +173,7 @@ int main(int argc, char *argv[])
      switch (c)
        {
        case 'i':
-         if (strlen(file) > 0) {
+         if (file != NULL && strlen(file) > 0) {
            //Option file déjà définit --> erreur
            errorUsage();
          }
@@ -193,8 +197,11 @@ int main(int argc, char *argv[])
             filter = strdup(optarg);
          break;
        case 'v':
-         if(strlen(optarg) > 0)
-            verbose = strdup(optarg);
+         if(strlen(optarg) == 1)
+            verbose = (optarg[0] - '0');
+         break;
+       case 'l':
+         limite = atoi(optarg);
          break;
        case 'c':
          //Activer la coloration (Système unix uniquement)
@@ -217,7 +224,7 @@ int main(int argc, char *argv[])
   }
   //------------------------Fin Opt------------------------
 
-  printParam(interface, file, filter, verbose);
+  printParam(interface, file, filter);
 
   if (useDefaultInterface) {
     printT(1, 0, "Use default interface : %s\n", "Yes");
@@ -236,6 +243,10 @@ int main(int argc, char *argv[])
     if(interface == NULL || strlen(interface) == 0){
       //Sinon on prend l'interface par défaut
       interface = pcap_lookupdev(errbuf);
+      if (interface == NULL) {
+          printT(0, 0, "Couldn't find default device: %s\n", errbuf);
+          exit(EXIT_FAILURE);
+      }
     }
 
     if (strlen(interface) == 0) {
@@ -245,7 +256,8 @@ int main(int argc, char *argv[])
 
     handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
-      printT(0, 0, "Couldn't open device %s: %s\n", interface, errbuf);
+      printT(0, 0, "Couldn't open device %s.\n\nList of available devices :\n", interface, errbuf);
+      dumpInterfaces();
       return(2);
     }
 
@@ -257,7 +269,7 @@ int main(int argc, char *argv[])
     handle = pcap_open_offline(file, errbuf);
     if (handle == NULL) {
       printT(0, 0, "Couldn't open file %s: %s\n", file, errbuf);
-      freeOpt(&interface, &file, &filter, &verbose);
+      freeOpt(&interface, &file, &filter);
       exit(EXIT_FAILURE);
     }
 
@@ -271,6 +283,6 @@ int main(int argc, char *argv[])
 
   pcap_loop(handle, 0, callback, NULL);
   printT(1, 0, "");
-  freeOpt(&interface, &file, &filter, &verbose);
+  freeOpt(&interface, &file, &filter);
 	return(0);
 }

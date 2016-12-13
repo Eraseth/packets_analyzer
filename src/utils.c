@@ -47,7 +47,7 @@ void printAscii(const int dataLength, const unsigned char *data, const uint8_t f
   }
 }
 
-void printParam(const char* interface, const char* file, const char* filter, const char* verbose){
+void printParam(const char* interface, const char* file, const char* filter){
   printT(1, 0, "");
   if (interface != NULL) {
     printT(0, 0, "Interface : %s\n", interface);
@@ -67,10 +67,19 @@ void printParam(const char* interface, const char* file, const char* filter, con
     printT(0, 0, "Filter : %s\n", "Not used");
   }
 
-  if (verbose != NULL) {
+  if (verbose <= 3 && verbose > 0) {
     printT(0, 0, "Verbose : %s\n", verbose);
   } else {
+    verbose = 3;
     printT(0, 0, "Verbose : %s\n", "Default (3 - Full)");
+  }
+
+  if(limite == 0) {
+    printT(0, 0, "\nWarning : %s\n", "Limit of 0. (bad param)");
+  } else if (limite != -1){
+    printT(0, 0, "Limit : %d\n", limite);
+  } else {
+    printT(0, 0, "Limit : %s\n", "Not used");
   }
 }
 
@@ -88,7 +97,7 @@ void* reallocS(char **ptr, size_t taille)
   return ptr_realloc;
 }
 
-void freeOpt(char **interface, char **file, char **filter, char **verbose){
+void freeOpt(char **interface, char **file, char **filter){
   if (*interface != NULL) {
     free(*interface);
     *interface = NULL;
@@ -101,13 +110,41 @@ void freeOpt(char **interface, char **file, char **filter, char **verbose){
     free(*filter);
     *filter = NULL;
   }
-  if (*verbose != NULL) {
-    free(*verbose);
-    *verbose = NULL;
-  }
 }
 
 void errorUsage(){
   printT(0, 0, "%s", USAGE);
   exit(EXIT_FAILURE);
+}
+
+void dumpInterfaces(){
+	pcap_if_t *allDevices;
+	pcap_if_t *d;
+	int i=0;
+	char errbuf[PCAP_ERRBUF_SIZE];
+
+	if (pcap_findalldevs(&allDevices, errbuf) == -1)
+	{
+		printT(0, 0,"Error : Retrieving the device list from the local machine : %s\n", errbuf);
+		exit(EXIT_FAILURE);
+	}
+
+	for(d= allDevices; d != NULL; d= d->next)
+	{
+		printT(0, 0, "%d. %s", ++i, d->name);
+		if (d->description)
+			printT(0, 0, " (%s)\n", d->description);
+		else
+			printT(0, 0, " (No description available)\n");
+	}
+
+	if (i == 0)
+	{
+		printT(0, 0, "\nNo interfaces found! Make sure pcap is installed.\n");
+		return;
+	}
+  printT(1, 0, "");
+
+	/* We don't need the device list anymore. Free it */
+	pcap_freealldevs(allDevices);
 }
