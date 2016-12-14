@@ -249,16 +249,11 @@ int main(int argc, char *argv[])
       }
     }
 
-    if (strlen(interface) == 0) {
-      printT(0, 0, "Impossible de trouver l'interface par défaut: %s\n", errbuf);
-      exit(EXIT_FAILURE);
-    }
-
     handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
-      printT(0, 0, "Couldn't open device %s.\n\nList of available devices :\n", interface, errbuf);
+      printT(0, 0, "Couldn't open device %s.\n\nList of available devices :\n", errbuf);
       dumpInterfaces();
-      return(2);
+      return(EXIT_FAILURE);
     }
 
     printT(0, 0, "----------NEW----------\n");
@@ -279,6 +274,21 @@ int main(int argc, char *argv[])
   } else {
      //Sinon erreur
      errorUsage();
+  }
+
+  if (filter != NULL) {
+
+    struct bpf_program fp;
+    bpf_u_int32 net; /* The IP of our sniffing device */
+
+    if (pcap_compile(handle, &fp, filter, 0, net) == -1) {
+      printT(0, 0, "\nCouldn't parse filter \"%s\": %s\n\n", filter, pcap_geterr(handle));
+      return(2);
+    }
+    if (pcap_setfilter(handle, &fp) == -1) {
+      printT(0, 0, "\nCouldn't install filter \"%s\": %s\n\n", filter, pcap_geterr(handle));
+      return(2);
+    }
   }
 
   pcap_loop(handle, 0, callback, NULL);

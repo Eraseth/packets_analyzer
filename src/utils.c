@@ -56,30 +56,30 @@ void printParam(const char* interface, const char* file, const char* filter){
   }
 
   if (file != NULL) {
-    printT(0, 0, "File : %s\n", file);
+    printT(0, 0, "File      : %s\n", file);
   } else {
-    printT(0, 0, "File : %s\n", "Not used");
+    printT(0, 0, "File      : %s\n", "Not used");
   }
 
   if (filter != NULL) {
-    printT(0, 0, "Filter : %s\n", filter);
+    printT(0, 0, "Filter    : \"%s\"\n", filter);
   } else {
-    printT(0, 0, "Filter : %s\n", "Not used");
+    printT(0, 0, "Filter    : %s\n", "Not used");
   }
 
   if (verbose <= 3 && verbose > 0) {
-    printT(0, 0, "Verbose : %s\n", verbose);
+    printT(0, 0, "Verbose   : %d\n", verbose);
   } else {
     verbose = 3;
-    printT(0, 0, "Verbose : %s\n", "Default (3 - Full)");
+    printT(0, 0, "Verbose   : %s\n", "Default (3 - Full)");
   }
 
   if(limite == 0) {
     printT(0, 0, "\nWarning : %s\n", "Limit of 0. (bad param)");
   } else if (limite != -1){
-    printT(0, 0, "Limit : %d\n", limite);
+    printT(0, 0, "Limit     : %d\n", limite);
   } else {
-    printT(0, 0, "Limit : %s\n", "Not used");
+    printT(0, 0, "Limit     : %s\n", "Not used");
   }
 }
 

@@ -17,7 +17,7 @@ void telnet(const u_char *appData, const int dataLength, const uint8_t flagsT){
 }
 
 void printTelnet(const int dataLength, const unsigned char *data, const uint8_t flagsT){
-
+	//Probablement optimisable mais fonctionne correctement
   if (dataLength <= 0) {
     printT(1, 10, "No data");
 
