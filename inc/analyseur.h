@@ -48,12 +48,13 @@
 #define HTTP 80
 
 
-#define OPT_LIST "i:o:f:v:l:c::"
-#define USAGE "Usage :\n./Analyseur.out\n./Analyseur.out -i interface [-f filter] [-v 1..3] [-c] [-l trames]\n./Analyseur.out -o file [-f filter] [-v 1..3] [-c] [-l trames]\n"
+#define OPT_LIST "i:o:f:v:l:s:c::"
+#define USAGE "Usage :\n./Analyseur.out\n./Analyseur.out -i interface [-f filter] [-v 1..3] [-c] [-l trames] [-s saveFile]\n./Analyseur.out -o pcapFile [-f filter] [-v 1..3] [-c] [-l trames] [-s saveFile]\n"
 
 extern int coloration;
 extern int limite;
 extern int verbose;
+FILE *fp;
 
 void callback(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void handleTransportProtocol(int transportProtocol, const u_char *transportHeader);

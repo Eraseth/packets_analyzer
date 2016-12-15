@@ -11,11 +11,11 @@ void hexatram(const struct pcap_pkthdr *header, const u_char *packet){
 
 	for (i = 0; i < header->len; i++)
 	{
-    if (i%16==0 || i == (header->len)) printf("\n    "); else printf(":");
-    printf("%02X", packet[i]);
+    if (i%16==0 || i == (header->len)) printT(1, 4, ""); else printT(0, 0, ":");
+    printT(0, 0, "%02X", packet[i]);
 	}
-	printf("\n\n");
+	printT(2, 0, "");
 	if (coloration) {
-		printf(KNRM);
+		printT(0, 0, KNRM);
 	}
 }

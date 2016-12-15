@@ -3,6 +3,7 @@
 int verbose = -1;
 int limite = -1;
 int coloration = 0;
+FILE *fp;
 uint8_t flagsT = -1; //Les flags TCP
 int dataLength = -1; //La taille des données
 
@@ -158,11 +159,13 @@ int main(int argc, char *argv[])
 {
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t *handle;
+  fp = stdout; //Sortie standart
 
   //------------------------Opt------------------------
   char *interface = NULL;
   char *file = NULL;
   char *filter = NULL;
+  char *saveFile = NULL;
   int useDefaultInterface = 1; //On utilise l'interface par défaut
   /*Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
   sinon on prend l'interface par défaut */
@@ -196,6 +199,10 @@ int main(int argc, char *argv[])
          if(strlen(optarg) > 0)
             filter = strdup(optarg);
          break;
+       case 's':
+         if(strlen(optarg) > 0)
+            saveFile = strdup(optarg);
+         break;
        case 'v':
          if(strlen(optarg) == 1)
             verbose = (optarg[0] - '0');
@@ -223,7 +230,14 @@ int main(int argc, char *argv[])
        }
   }
   //------------------------Fin Opt------------------------
-
+  if (saveFile != NULL) {
+    if(access(saveFile, F_OK ) != -1) {
+      printT(0, 0, "Error : File \"%s\" already exist.\n", saveFile);
+      exit(EXIT_FAILURE);
+    } else {
+      fp = fopen(saveFile, "w");
+    }
+  }
   printParam(interface, file, filter);
 
   if (useDefaultInterface) {
@@ -237,6 +251,7 @@ int main(int argc, char *argv[])
   } else {
     printT(0, 0, "Use coloration : %s\n\n", "No");
   }
+
   //Si aucun paramètre ou si interface renseigné
   if (useDefaultInterface == 1 || (interface != NULL && strlen(interface) > 0)) {
     //On vérifi si l'interface est spécifié
@@ -264,7 +279,7 @@ int main(int argc, char *argv[])
     handle = pcap_open_offline(file, errbuf);
     if (handle == NULL) {
       printT(0, 0, "Couldn't open file %s: %s\n", file, errbuf);
-      freeOpt(&interface, &file, &filter);
+      freeOpt(&interface, &file, &filter, &saveFile);
       exit(EXIT_FAILURE);
     }
 
@@ -293,6 +308,9 @@ int main(int argc, char *argv[])
 
   pcap_loop(handle, 0, callback, NULL);
   printT(1, 0, "");
-  freeOpt(&interface, &file, &filter);
+  freeOpt(&interface, &file, &filter, &saveFile);
+  if (fp != stdout) {
+    fclose(fp);
+  }
 	return(0);
 }

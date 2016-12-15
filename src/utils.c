@@ -2,12 +2,15 @@
 #include <netinet/tcp.h>
 
 void printT(const int jump, const int space, const char *msg, ...){
+
   va_list vargs;
   va_start(vargs, msg);
   size_t i;
-  if (jump > 0) printf("%*s", jump, "\n");
-  printf("%*s", space, "");
-  vprintf(msg, vargs);
+  for (i = 0; i < jump; i++) {
+    fprintf(fp, "\n");
+  }
+  fprintf(fp, "%*s", space, "");
+  vfprintf(fp ,msg, vargs);
   va_end(vargs);
 }
 
@@ -97,7 +100,7 @@ void* reallocS(char **ptr, size_t taille)
   return ptr_realloc;
 }
 
-void freeOpt(char **interface, char **file, char **filter){
+void freeOpt(char **interface, char **file, char **filter, char **saveFile){
   if (*interface != NULL) {
     free(*interface);
     *interface = NULL;
@@ -109,6 +112,10 @@ void freeOpt(char **interface, char **file, char **filter){
   if (*filter != NULL) {
     free(*filter);
     *filter = NULL;
+  }
+  if (*saveFile != NULL) {
+    free(*saveFile);
+    *saveFile = NULL;
   }
 }
 
