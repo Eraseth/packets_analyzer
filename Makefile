@@ -16,7 +16,8 @@ BIN = $(PROJECT)$(TYPE)
 OBJS = $(DOUT)/analyseur.o $(DOUT)/utils.o $(DOUT)/datalink/ethernet.o $(DOUT)/hexatram.o\
 $(DOUT)/network/ip.o $(DOUT)/transport/udp.o $(DOUT)/transport/tcp.o $(DOUT)/application/icmp.o\
 $(DOUT)/network/arp.o $(DOUT)/application/bootp.o $(DOUT)/application/http.o $(DOUT)/application/pop.o\
-$(DOUT)/application/imap.o $(DOUT)/application/smtp.o $(DOUT)/application/ftp.o $(DOUT)/application/telnet.o
+$(DOUT)/application/imap.o $(DOUT)/application/smtp.o $(DOUT)/application/ftp.o $(DOUT)/application/telnet.o\
+$(DOUT)/application/dns.o
 DEPS = $(INC)/*.h
 
 CFLAGS = -W -Wall -lpcap

@@ -25,7 +25,7 @@ int tcp(const u_char *transportHeader, int *portD, int *portS, int *dataLength, 
   printT(0, 8, "|-Source Port            : %d\n", *portS);
 	printT(0, 8, "|-Destination Port       : %d\n", *portD);
 	printT(0, 8, "|-Sequence Number        : %d\n", ntohl(tcp->th_seq));
-	printT(0, 8, "|-Acknowledgement Number : %d\n", ntohl(tcp->th_ack));
+	printT(0, 8, "|-Acknowledgement Number : %u\n", ntohl(tcp->th_ack));
 	printT(0, 8, "|-Data Offset            : %d\n", tcp->th_off);
 	printT(0, 8, "|-Flags                  : 0x%03x\n", flags);
 	printT(0, 10, "|-Urgent Flag          : %d\n", urgF);

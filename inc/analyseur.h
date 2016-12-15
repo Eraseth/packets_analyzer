@@ -26,6 +26,7 @@
 #include "smtp.h"
 #include "ftp.h"
 #include "telnet.h"
+#include "dns.h"
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -46,6 +47,7 @@
 #define FTPD 20
 #define TELNET 23
 #define HTTP 80
+#define DNS 53
 
 
 #define OPT_LIST "i:o:f:v:l:s:c::"

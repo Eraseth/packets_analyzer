@@ -90,6 +90,9 @@ int switchPort(const u_char *appData, const int port){
     case TELNET:
       telnet(appData, dataLength, flagsT);
       break;
+    case DNS:
+      telnet(appData, dataLength, flagsT);
+      break;
     default:
       return 0;
   }
