@@ -10,6 +10,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
+#include <stdint.h>
+#include <sys/types.h>
 
 #include "utils.h"
 #include "ethernet.h"

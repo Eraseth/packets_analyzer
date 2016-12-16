@@ -2,9 +2,6 @@
 
 #define DEF_DNS
 
-#include <stdint.h>
-#include <sys/types.h>
-
 #define QRREK 0
 #define QRREP 1
 
@@ -18,6 +15,19 @@
 #define RNONAME 3
 #define RNOIMP 4
 #define RREFUSE 5
+
+#define DNSSIZE 12
+
+#define QUESTION 0
+#define ANSWER 1
+#define AUTHORITY 2
+#define ADDITIONAL 3
+
+#define QUESTIONL 4
+
+#define PMASK 0b11000000 //Permet de vérfiier si l'octet présent dans le nom est un pointeur ou non
+#define OMASK 0b00111111 //Permet de trouver l'index du pointeur
+#define OMASK2 0b0011111111111111 //Permet de trouver la valeur pour pointer au bon endroit
 
 struct dns{
     uint16_t id;
@@ -46,19 +56,16 @@ struct dns{
     uint16_t arcount;
 };
 
-struct q_fixed_size_fields{
-    uint16_t qtype;
-    uint16_t qclass;
-};
-
-struct rr_fixed_size_fields{
+struct rrSt{
     uint16_t type;
     uint16_t class;
     uint32_t ttl;
-    uint16_t rdlength;
+    uint16_t length;
 };
 
 void dns(const u_char *appData);
 void printOpCode(const uint8_t opcode);
 void printRcode(const uint8_t rcode);
+const u_char* name(const u_char *appHeader, const u_char *dnsRr, int isPtr);
+int handleRr(const struct rrSt *rr, int typeOfRr);
 #endif

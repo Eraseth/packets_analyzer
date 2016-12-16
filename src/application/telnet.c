@@ -14,6 +14,10 @@ void telnet(const u_char *appData, const int dataLength, const uint8_t flagsT){
 	}
 	printT(1, 0, "");
 
+	if (coloration) {
+		printT(0, 0, KNRM);
+	}
+	
 }
 
 void printTelnet(const int dataLength, const unsigned char *data, const uint8_t flagsT){
