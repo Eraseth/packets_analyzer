@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <arpa/nameser_compat.h>
 #include "../../inc/analyseur.h"
 
 void dns(const u_char *appHeader){
 
-	struct dns *dns = (struct dns *) appHeader;
+	HEADER *dns = (HEADER *) appHeader;
 
 	/*
 	---------------Verbose 1------------------
@@ -56,7 +57,7 @@ void dns(const u_char *appHeader){
   printT(0, 12, "|-Troncate message       : %d\n", dns->tc);
   printT(0, 12, "|-Ask Recursivity        : %d\n", dns->rd);
   printT(0, 12, "|-Recursivity autorised  : %d\n", dns->ra);
-  printT(0, 12, "|-Z                      : %d\n", dns->z);
+  printT(0, 12, "|-Unused                 : %d\n", dns->unused);
   printRcode(dns->rcode);
   printT(0, 10, "|-Qdcount                  : %u\n", qdcount);
   printT(0, 10, "|-Ancount                  : %d\n", ancount);
@@ -65,6 +66,7 @@ void dns(const u_char *appHeader){
 
 	const u_char *dnsRr = appHeader + DNSSIZE;
 	const u_char *appH = appHeader;
+	int type = -1;
 	size_t i;
 	if (qdcount > 0) {
 		printT(1, 10, "|-%s", "Questions");
@@ -74,12 +76,14 @@ void dns(const u_char *appHeader){
 				printT(1, 12, "|-------------------------------");
 			}
 			printT(1, 12, "|-Name                   : ");
-			dnsRr = name(appH, dnsRr, 0);
-			const struct rrSt *rr = (const struct rrSt *) dnsRr;
-			int lenType = handleRr(rr, QUESTION);
+
+			dnsRr = dnsRr + nameWhile(appHeader, dnsRr);
+			struct rrQ *rr = (struct rrQ *) dnsRr;
+			int lenType = handleRrQ(rr);
 			if (lenType > 0) {
 				dnsRr = dnsRr + lenType;
 			}
+
 		}
 	}
 
@@ -91,15 +95,26 @@ void dns(const u_char *appHeader){
 				printT(1, 12, "|-------------------------------");
 			}
 			printT(1, 12, "|-Name                   : ");
-			name(appH, dnsRr, 0);
+			dnsRr = dnsRr + nameWhile(appHeader, dnsRr);
+
 			const struct rrSt *rr = (const struct rrSt *) dnsRr;
-			int lenType = handleRr(rr, ANSWER);
+			int lenType = handleRr(rr, &type);
+			dnsRr = dnsRr + RRSTL;
+			printT(1, 12, "|-Data                   : ");
+			if (type == 2) {
+				nameWhile(appHeader, dnsRr);
+			} else if (type == 1){
+				size_t Aindice;
+				for (Aindice = 0; Aindice < lenType; Aindice++) {
+					if (Aindice != 0) {
+						printT(0, 0, ".");
+					}
+					printT(0, 0, "%d", dnsRr[Aindice]);
+				}
+			}
 			if (lenType > 0) {
 				dnsRr = dnsRr + lenType;
 			}
-
-			printT(1, 12, "|-Name server            : ");
-			dnsRr = name(appH, dnsRr, 0);
 
 		}
 	}
@@ -112,14 +127,13 @@ void dns(const u_char *appHeader){
 				printT(1, 12, "|-------------------------------");
 			}
 			printT(1, 12, "|-Name                   : ");
-			dnsRr = name(appH, dnsRr, 0);
+			dnsRr = dnsRr + nameWhile(appHeader, dnsRr);
 			const struct rrSt *rr = (const struct rrSt *) dnsRr;
-			int lenType = handleRr(rr, AUTHORITY);
+			int lenType = handleRr(rr, &type);
 			if (lenType > 0) {
 				dnsRr = dnsRr + lenType;
 			}
 			printT(1, 12, "|-Name server            : ");
-			dnsRr = name(appH, dnsRr, 0);
 
 		}
 	}
@@ -132,14 +146,13 @@ void dns(const u_char *appHeader){
 				printT(1, 12, "|-------------------------------");
 			}
 			printT(1, 12, "|-Name                   : ");
-			dnsRr = name(appH, dnsRr, 0);
+			dnsRr = dnsRr + nameWhile(appHeader, dnsRr);
 			const struct rrSt *rr = (const struct rrSt *) dnsRr;
-			int lenType = handleRr(rr, ADDITIONAL);
+			int lenType = handleRr(rr, &type);
 			if (lenType > 0) {
 				dnsRr = dnsRr + lenType;
 			}
 			printT(1, 12, "|-Name server            : ");
-			dnsRr = name(appH, dnsRr, 0);
 
 		}
 	}
@@ -199,51 +212,78 @@ void printRcode(const uint8_t rcode){
 }
 
 /* Gestion de la partie rr (après le nom) */
-int handleRr(const struct rrSt *rr, int typeOfRr){
+int handleRrQ(const struct rrQ *rr){
 	printT(1, 12, "|-Type                   : %d", ntohs(rr->type));
 	printT(1, 12, "|-Class                  : %d", ntohs(rr->class));
-	switch (typeOfRr) {
-		case QUESTION:
-			return QUESTIONL;
-			break;
-		case ANSWER: case AUTHORITY: case ADDITIONAL:
-			printT(1, 12, "|-TTL                    : %u", ntohl(rr->ttl));
-			printT(1, 12, "|-Length                 : %d", ntohs(rr->length));
-			return (sizeof(struct rrSt));
-			break;
-	return -1;
-	}
+	return QUESTIONL;
 }
 
-/* Fonction recursive pour les noms */
-const u_char* name(const u_char *appHeader, const u_char *dnsRr, int isPtr){
-	uint8_t start = (uint8_t) dnsRr[0];
-  uint8_t nameLength = start & OMASK;
+unsigned handleRr(const struct rrSt *rr, int *type){
+	unsigned len = ntohs(rr->length);
+	*type = ntohs(rr->type);
+	printT(1, 12, "|-Type                   : %d", *type);
+	printT(1, 12, "|-Class                  : %d", ntohs(rr->class));
+	printT(1, 12, "|-TTL                    : %u", ntohl(rr->ttl));
+	printT(1, 12, "|-Length                 : %u", len);
+	return len;
+}
 
-	if ((start & PMASK) > 0) {
-		uint16_t indexPtr = (dnsRr[0] << 8 ) | (dnsRr[1] & 0xff);
-		uint16_t lengthFromStart = indexPtr & OMASK2;
-		name(appHeader, (appHeader + lengthFromStart), 1);
-	} else {
-		size_t i = 1;
 
-		while(i <= nameLength) {
-			if (isprint(dnsRr[i]) || dnsRr[i] == '.') {
-				printT(0, 0, "%c", dnsRr[i]);
-			}
-		  i++;
-			if (i == nameLength + 1) {
+size_t nameWhile(const u_char *appHeader, const u_char *dnsRr){
+	size_t indiceName = 0;
+	unsigned start;
+	int testName = 1;
+
+	while(testName){
+		start = (unsigned) dnsRr[indiceName];
+		if ((start & PMASK) == 192) {
+			unsigned indexPtr = (dnsRr[indiceName] << 8 ) | (dnsRr[indiceName+1] & 0xff);
+			int indiceStart = indexPtr & OMASK2;
+			nameRecur(appHeader, indiceStart);
+			indiceName += 2;
+			testName = 0;
+		} else {
+			if (isprint(dnsRr[indiceName])) {
+				printT(0, 0, "%c", dnsRr[indiceName]);
+			} else {
 				printT(0, 0, ".");
 			}
+			indiceName++;
+
+			if (dnsRr[indiceName] == 0) {
+				testName = 0;
+				indiceName++;
+			}
 		}
+	}
+	return indiceName;
+}
 
-		const u_char *more = dnsRr + nameLength + 1;
+void nameRecur(const u_char *appHeader, int indiceStart){
+	const u_char *read = appHeader + indiceStart;
+	size_t indiceName = 0;
+	unsigned start;
+	int testName = 1;
 
-
-		if (more[0] == 0) {
-			return more + 1;
+	while(testName){
+		start = (unsigned) read[indiceName];
+		if ((start & PMASK) == 192) {
+			unsigned indexPtr = (read[0] << 8 ) | (read[1] & 0xff);
+			int indiceStartR = indexPtr & OMASK2;
+			nameRecur(appHeader, indiceStartR);
+			indiceName += 2;
+			testName = 0;
 		} else {
-			return name(appHeader, more, 0);
+			if (isprint(read[indiceName])) {
+				printT(0, 0, "%c", read[indiceName]);
+			} else {
+				printT(0, 0, ".");
+			}
+			indiceName++;
+
+			if (read[indiceName] == 0) {
+				testName = 0;
+			}
 		}
 	}
 }

@@ -261,6 +261,10 @@ int main(int argc, char *argv[])
       exit(EXIT_FAILURE);
     } else {
       fp = fopen(saveFile, "w");
+      printf("Capture in file \"fichier\" %s.\n", saveFile);
+      if (file == NULL) {
+        printf("CTRL-C to stop capture.\n");
+      }
     }
   }
 
