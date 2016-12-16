@@ -2,7 +2,7 @@
 
 #define DEF_TELNET
 
-//Caractère de contrôle
+//Caractères de contrôles
 #define IAC 255
 #define NOP 241
 #define DM 242

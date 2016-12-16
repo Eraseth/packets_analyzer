@@ -7,7 +7,13 @@ FILE *fp;
 uint8_t flagsT = -1; //Les flags TCP
 int dataLength = -1; //La taille des données
 
-//---------------Gestion des protocoles------------------
+/*
+=======================================================
+---------------Gestion des protocoles------------------
+=======================================================
+*/
+
+/* Gestion des protocoles de transport */
 void handleTransportProtocol(int transportProtocol, const u_char *transportHeader){
   //Les headers
   const u_char *appData;
@@ -19,19 +25,19 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
   flagsT = -1;
 
   switch (transportProtocol) {
-    case 1:
+    case IPPROTO_ICMP:
       //ICMP (n'est pas un protcole de transport)
       icmp(transportHeader);
       //TODO Revoir ICMP !
       break;
-    case 11:
+    case IPPROTO_UDP:
       //UDP
       udp(transportHeader, &portD, &portS);
       appData = transportHeader + UDP_LEN; //Décale au début de la couche session/presentation/applicatif
       dataLength -= UDP_LEN;
       handleAppProtocol(appData, portD, portS);
       break;
-    case 6:
+    case IPPROTO_TCP:
       //TCP
       tcpHdrLen = tcp(transportHeader, &portD, &portS, &dataLength, &flagsT);
       if (tcpHdrLen <= 0) {
@@ -52,6 +58,7 @@ void handleTransportProtocol(int transportProtocol, const u_char *transportHeade
 
 }
 
+/* Gestion des protocoles applicatif */
 void handleAppProtocol(const u_char *appData, int portD, int portS){
   //Test des protocoles applicatif avec le port destination
   if (!switchPort(appData ,portD)) {
@@ -66,6 +73,7 @@ void handleAppProtocol(const u_char *appData, int portD, int portS){
   }
 }
 
+/* Vérifie le port et utilise la bonne fonction en conséquence */
 int switchPort(const u_char *appData, const int port){
   switch (port) {
     //67 et 68
@@ -99,6 +107,7 @@ int switchPort(const u_char *appData, const int port){
   return 1;
 }
 
+/* Fonction appelée par PCAP */
 void callback(u_char *args, const struct pcap_pkthdr *header,
             const u_char *packet){
 
@@ -113,7 +122,7 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
     printT(1, 0, "Limit reached. End\n\n");
     exit(0);
   }
-  printT(1, 0, "Packet N°%d ########################################################################\n", nbPaquet);
+  printT(2, 0, "Packet N°%d ########################################################################\n", nbPaquet);
 
   //Les headers
 	const u_char *networkHeader;
@@ -157,22 +166,32 @@ void callback(u_char *args, const struct pcap_pkthdr *header,
   }
 }
 
-//---------------Main------------------
+/*
+=====================================
+---------------Main------------------
+=====================================
+*/
 int main(int argc, char *argv[])
 {
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t *handle;
   fp = stdout; //Sortie standart
 
-  //------------------------Opt------------------------
+  /*
+  =====================================================
+  ---------------Gestion des otpions------------------
+  =====================================================
+  */
   char *interface = NULL;
   char *file = NULL;
   char *filter = NULL;
   char *saveFile = NULL;
-  int useDefaultInterface = 1; //On utilise l'interface par défaut
-  /*Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
-  sinon on prend l'interface par défaut */
+  int useDefaultInterface = 1; //Utilisation de l'interface par défaut
+
   if (argc > 1) {
+    /*Si plus d'une option (la première étant le nom du programme) alors il faut les gérer
+    sinon on prend l'interface par défaut */
+
     int c;
 
     while ((c = getopt (argc, argv, OPT_LIST)) != -1)
@@ -180,7 +199,7 @@ int main(int argc, char *argv[])
        {
        case 'i':
          if (file != NULL && strlen(file) > 0) {
-           //Option file déjà définit --> erreur
+           //Si l'otpion File est déjà définit --> ERROR
            errorUsage();
          }
 
@@ -188,14 +207,15 @@ int main(int argc, char *argv[])
           interface = strdup(optarg);
          break;
        case 'o':
-         //Si l'option i a été renseignée --> erreur
          if (interface != NULL && strlen(interface) > 0) {
+           //Si l'otpion Interface est déjà définit --> ERROR
            errorUsage();
          }
          if(strlen(optarg) > 0)
          {
            file = strdup(optarg);
-           useDefaultInterface = 0; //Option o renseignée, on utilise pas l'interface par défaut
+          //Option o renseignée, on utilise donc pas l'interface par défaut
+           useDefaultInterface = 0;
          }
          break;
        case 'f':
@@ -214,7 +234,7 @@ int main(int argc, char *argv[])
          limite = atoi(optarg);
          break;
        case 'c':
-         //Activer la coloration (Système unix uniquement)
+         //Option permettant la colorisation (fonctionne uniquement avec certains terminaux)
          coloration = 1;
          break;
        case '?':
@@ -232,7 +252,9 @@ int main(int argc, char *argv[])
          abort ();
        }
   }
-  //------------------------Fin Opt------------------------
+  /*------------------------Fin Option------------------------*/
+
+  /* Utilisation d'un fichier plûtot que la sortie standart */
   if (saveFile != NULL) {
     if(access(saveFile, F_OK ) != -1) {
       printT(0, 0, "Error : File \"%s\" already exist.\n", saveFile);
@@ -241,6 +263,8 @@ int main(int argc, char *argv[])
       fp = fopen(saveFile, "w");
     }
   }
+
+  /* Affiche les paramètres */
   printParam(interface, file, filter);
 
   if (useDefaultInterface) {
@@ -278,7 +302,7 @@ int main(int argc, char *argv[])
     printT(0, 0, "Interface: %s\n", interface);
 
   } else if(strlen(file) > 0) {
-  //Sinon si le fichier est renseigné (avec l'option o)
+    //Sinon si le fichier est renseigné (avec l'option o)
     handle = pcap_open_offline(file, errbuf);
     if (handle == NULL) {
       printT(0, 0, "Couldn't open file %s: %s\n", file, errbuf);
@@ -315,5 +339,5 @@ int main(int argc, char *argv[])
   if (fp != stdout) {
     fclose(fp);
   }
-	return(0);
+	return(EXIT_SUCCESS);
 }

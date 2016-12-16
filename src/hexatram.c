@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "../inc/analyseur.h"
 
+/* Affiche le packet entièrement en hexadecimal */
 void hexatram(const struct pcap_pkthdr *header, const u_char *packet){
 	int i;
 	if (coloration) {

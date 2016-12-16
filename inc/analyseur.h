@@ -30,6 +30,7 @@
 #include "telnet.h"
 #include "dns.h"
 
+/* Define pour les couleurs */
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
@@ -39,6 +40,7 @@
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
+/* Define pour les ports utilisés */
 #define DHCP 68
 #define DHCP2 67
 #define SMTP 25
@@ -51,15 +53,30 @@
 #define HTTP 80
 #define DNS 53
 
+/* Define pour la gestions des espaces dans les protocoles */
+#define TITLESPACE 2
+#define UNDERSPACE 2
+#define ETHERSPACE 4
+#define IPSAPCE 6
+#define ARPSPACE 6
+#define UDPSPACE 8
+#define TCPSPACE 8
+#define BOOTPSPACE 10
+#define DHCPSPACE 14
+#define ICMPSPACE 10
+#define ASCIISPACE 10
 
+/* Define pour la gestions des options */
 #define OPT_LIST "i:o:f:v:l:s:c::"
 #define USAGE "Usage :\n./Analyseur.out\n./Analyseur.out -i interface [-f filter] [-v 1..3] [-c] [-l trames] [-s saveFile]\n./Analyseur.out -o pcapFile [-f filter] [-v 1..3] [-c] [-l trames] [-s saveFile]\n"
 
+/* Variables globales */
 extern int coloration;
 extern int limite;
 extern int verbose;
 FILE *fp;
 
+/* Fonctions */
 void callback(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void handleTransportProtocol(int transportProtocol, const u_char *transportHeader);
 void handleAppProtocol(const u_char *appData, int portD, int portS);

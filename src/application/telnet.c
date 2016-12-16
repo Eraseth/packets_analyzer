@@ -2,12 +2,36 @@
 #include <netinet/tcp.h>
 #include "../../inc/analyseur.h"
 
+/* Affichage de Telnet */
 void telnet(const u_char *appData, const int dataLength, const uint8_t flagsT){
+
+	/*
+	---------------Verbose 1------------------
+	*/
+	if (verbose == 1) {
+		if (coloration) {
+			printT(0, 0, "-"KYEL"TELNET"KNRM);
+		} else {
+			printT(0, 0, "-TELNET");
+		}
+
+		return ;
+	}
+
 	if (coloration) {
 		printT(1, 8, KYEL"TELNET\n");
 	} else {
 		printT(1, 8, "TELNET\n");
 	}
+
+	/*
+	---------------Verbose 2------------------
+	*/
+	if (verbose == 2) return ;
+
+	/*
+	---------------Verbose 2------------------
+	*/
 	printTelnet(dataLength, appData, flagsT);
 	if (coloration) {
 		printT(0, 0, KNRM);
@@ -17,9 +41,11 @@ void telnet(const u_char *appData, const int dataLength, const uint8_t flagsT){
 	if (coloration) {
 		printT(0, 0, KNRM);
 	}
-	
+
 }
 
+/* Fonction permettant l'affichage de Telnet. Cette fonction va également cast les
+caractère de contrôles et options */
 void printTelnet(const int dataLength, const unsigned char *data, const uint8_t flagsT){
 	//Probablement optimisable mais fonctionne correctement
   if (dataLength <= 0) {
@@ -47,8 +73,8 @@ void printTelnet(const int dataLength, const unsigned char *data, const uint8_t 
     printT(0, 10, "|- ");
 
     while (i < dataLength) {
-			//Si c'est le caractère d'échappement
 			if (data[i] == IAC) {
+				//Si c'est le caractère d'échappement
 				i++;
 				if (data[i] == SB) {
 					switchCtrl(data[i]);
@@ -103,6 +129,7 @@ void printTelnet(const int dataLength, const unsigned char *data, const uint8_t 
   }
 }
 
+/* Vérifie et affiche les carac de contrôle */
 int switchCtrl(const unsigned char c){
 	switch (c) {
 		case NOP:
@@ -169,6 +196,7 @@ int switchCtrl(const unsigned char c){
 	return -1;
 }
 
+/* Vérifi et affiche les options */
 int switchSubCtrl(const unsigned char c){
 	switch (c) {
 		case ECHO:

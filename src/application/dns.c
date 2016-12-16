@@ -2,20 +2,42 @@
 #include "../../inc/analyseur.h"
 
 void dns(const u_char *appHeader){
-	if (coloration) {
-		printT(1, 8, KYEL"DNS\n");
-	} else {
-		printT(1, 8, "DNS\n");
-	}
 
 	struct dns *dns = (struct dns *) appHeader;
+
+	if (verbose == 1) {
+		if (coloration) {
+			printT(0, 0, "-"KYEL"DNS"KNRM);
+		} else {
+			printT(0, 0, "-DNS");
+		}
+		return ;
+	}
+
+	if (coloration) {
+		printT(1, 8, KYEL"DNS");
+	} else {
+		printT(1, 8, "DNS");
+	}
 
 	uint16_t qdcount = ntohs(dns->qdcount);
 	uint16_t ancount = ntohs(dns->ancount);
 	uint16_t nscount = ntohs(dns->nscount);
 	uint16_t arcount = ntohs(dns->arcount);
 
-  printT(0, 10, "|-Identifier               : %d\n", ntohs(dns->id));
+
+	if (verbose == 2) {
+		printT(0, 0, "|-Qdcount : %u ", qdcount);
+		printT(0, 0, "|-Ancount : %d ", ancount);
+		printT(0, 0, "|-Nscount : %d ", nscount);
+		printT(0, 0, "|-Arcount : %d ", arcount);
+		if (coloration) {
+			printT(0, 0, KNRM);
+		}
+		return ;
+	}
+
+  printT(1, 10, "|-Identifier               : %d\n", ntohs(dns->id));
 	if (dns->qr == QRREK) {
 		printT(0, 10, "|-Type                     : Request  (%d)\n", QRREK);
 	} else if(dns->qr == QRREP) {

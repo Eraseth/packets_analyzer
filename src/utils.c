@@ -1,6 +1,14 @@
 #include "../inc/utils.h"
 #include <netinet/tcp.h>
 
+/*
+==================================================
+---------------Fonctions utiles------------------
+==================================================
+*/
+
+/* Affichage personnalisé permettant l'ajour d'espace et de
+saut à la ligne (1 er et 2nd paramètre) avant la chaîne */
 void printT(const int jump, const int space, const char *msg, ...){
 
   va_list vargs;
@@ -14,34 +22,38 @@ void printT(const int jump, const int space, const char *msg, ...){
   va_end(vargs);
 }
 
+/* Fonction permettant l'affichae en ASCII des protocoles applicatif */
 void printAscii(const int dataLength, const unsigned char *data, const uint8_t flagsT){
 
   if (dataLength <= 0) {
+    //Aucune données à afficher
     printT(1, 10, "No data");
 
     if (flagsT != -1) {
-
+      //Vérification des flags TCP (si nécéssaire)
       uint8_t ackF = (flagsT & TH_ACK) ? 1 : 0;
       uint8_t finF = (flagsT & TH_FIN) ? 1 : 0;
       uint8_t synF = (flagsT & TH_SYN) ? 1 : 0;
 
       if (synF) {
-        printT(0, 0, " : SYN TCP");
+        printT(0, 0, " : SYN TCP"); //Pas de données : SYN
       } else if (finF) {
-        printT(0, 0, " : FINISH TCP");
+        printT(0, 0, " : FINISH TCP"); //Pas de données : FIN
       } else if (ackF) {
-        printT(0, 0, " : ACK TCP");
+        printT(0, 0, " : ACK TCP"); //Pas de données : ACK
       }
     }
 
     printT(1, 0, "");
   } else {
-    printT(0, 10, "Warning: Unsupported characters are not displayed.\n\n");
+    printT(0, ASCIISPACE, "Warning: Unsupported characters are not displayed (replace by dot).\n\n");
     size_t i;
-    printT(0, 10, "|- ");
+    printT(0, ASCIISPACE, "|- ");
     for (i = 0; i < dataLength; i++) {
       if (isprint(data[i]) || isspace(data[i])) {
         printT(0, 0, "%c", data[i]);
+      } else {
+        printT(0, 0, "."); //affichage de point à la place des carac non supportés
       }
       if (data[i] == '\n') {
         printT(0, 10, "|- ");
@@ -50,6 +62,7 @@ void printAscii(const int dataLength, const unsigned char *data, const uint8_t f
   }
 }
 
+/* Affichage des paramètres */
 void printParam(const char* interface, const char* file, const char* filter){
   printT(1, 0, "");
   if (interface != NULL) {
@@ -86,6 +99,7 @@ void printParam(const char* interface, const char* file, const char* filter){
   }
 }
 
+/* Fonction de Ralloc (de chaîne) "sécurisé" */
 void* reallocS(char **ptr, size_t taille)
 {
   //Fonction de réallocation sécurisée
@@ -100,6 +114,7 @@ void* reallocS(char **ptr, size_t taille)
   return ptr_realloc;
 }
 
+/* Permet de libérer de la mémoire les paramètres */
 void freeOpt(char **interface, char **file, char **filter, char **saveFile){
   if (*interface != NULL) {
     free(*interface);
@@ -119,11 +134,13 @@ void freeOpt(char **interface, char **file, char **filter, char **saveFile){
   }
 }
 
+/* Affichage de l'"Usage" en cas d'érreur */
 void errorUsage(){
   printT(0, 0, "%s", USAGE);
   exit(EXIT_FAILURE);
 }
 
+/* Liste les devices disponible en cas d'erreur (handle == NULL)*/
 void dumpInterfaces(){
 	pcap_if_t *allDevices;
 	pcap_if_t *d;
