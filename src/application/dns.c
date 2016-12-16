@@ -5,6 +5,9 @@ void dns(const u_char *appHeader){
 
 	struct dns *dns = (struct dns *) appHeader;
 
+	/*
+	---------------Verbose 1------------------
+	*/
 	if (verbose == 1) {
 		if (coloration) {
 			printT(0, 0, "-"KYEL"DNS"KNRM);
@@ -25,7 +28,9 @@ void dns(const u_char *appHeader){
 	uint16_t nscount = ntohs(dns->nscount);
 	uint16_t arcount = ntohs(dns->arcount);
 
-
+	/*
+	---------------Verbose 2------------------
+	*/
 	if (verbose == 2) {
 		printT(0, 0, "|-Qdcount : %u ", qdcount);
 		printT(0, 0, "|-Ancount : %d ", ancount);
@@ -37,6 +42,9 @@ void dns(const u_char *appHeader){
 		return ;
 	}
 
+	/*
+	---------------Verbose 3------------------
+	*/
   printT(1, 10, "|-Identifier               : %d\n", ntohs(dns->id));
 	if (dns->qr == QRREK) {
 		printT(0, 10, "|-Type                     : Request  (%d)\n", QRREK);
@@ -141,7 +149,7 @@ void dns(const u_char *appHeader){
 	}
 }
 
-
+/* Fonction pour l'affichage de l'Opcode */
 void printOpCode(const uint8_t opcode){
   switch (opcode) {
     case OPREK:
@@ -161,6 +169,7 @@ void printOpCode(const uint8_t opcode){
 
 }
 
+/* Affichage du Rrcode */
 void printRcode(const uint8_t rcode){
   switch (rcode) {
     case RNOERR:
@@ -189,6 +198,7 @@ void printRcode(const uint8_t rcode){
   printT(0, 0, "\n");
 }
 
+/* Gestion de la partie rr (après le nom) */
 int handleRr(const struct rrSt *rr, int typeOfRr){
 	printT(1, 12, "|-Type                   : %d", ntohs(rr->type));
 	printT(1, 12, "|-Class                  : %d", ntohs(rr->class));
@@ -205,6 +215,7 @@ int handleRr(const struct rrSt *rr, int typeOfRr){
 	}
 }
 
+/* Fonction recursive pour les noms */
 const u_char* name(const u_char *appHeader, const u_char *dnsRr, int isPtr){
 	uint8_t start = (uint8_t) dnsRr[0];
   uint8_t nameLength = start & OMASK;

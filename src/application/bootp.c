@@ -135,7 +135,7 @@ void printDhcp(const u_int8_t *dhcp){
 	}
 }
 
-/* Verifie les options DHCP et affichae en conséquence */
+/* Verifie les options DHCP et affiche en conséquence */
 int option(const u_int8_t *dhcp, size_t *i){
 	size_t length = 0;
 	size_t len = 0;
@@ -152,61 +152,61 @@ int option(const u_int8_t *dhcp, size_t *i){
 			 return TAG_DHCP_MESSAGE;
 			break;
 		case TAG_CLIENT_ID:
-			printT(0, 0, "%s (%d)\n", "CLIENT_ID", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Client-identifier", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_CLIENT_ID;
 			break;
 		case TAG_HOSTNAME:
-			printT(0, 0, "%s (%d)\n", "HOSTNAME", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Host Name", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_HOSTNAME;
 			break;
 		case TAG_PARM_REQUEST:
-			printT(0, 0, "%s (%d)\n", "PARM_REQUEST", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Parameter Request List", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_PARM_REQUEST;
 			break;
 		case TAG_GATEWAY:
-			printT(0, 0, "%s (%d)\n", "GATEWAY", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Router", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_GATEWAY;
 			break;
 		case TAG_DOMAIN_SERVER:
-			printT(0, 0, "%s (%d)\n", "DOMAIN_SERVER", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Domain Name Server", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_DOMAIN_SERVER;
 			break;
 		case TAG_SUBNET_MASK:
-			printT(0, 0, "%s (%d)\n", "SUBNET_MASK", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Subnet Mask", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_SUBNET_MASK;
 			break;
 		case TAG_DOMAINNAME:
-			printT(0, 0, "%s (%d)\n", "DOMAINNAME", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Domain Name", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_DOMAINNAME;
 			break;
 		case TAG_SERVER_ID:
-			printT(0, 0, "%s (%d)\n", "SERVER_ID", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Server Identifier", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_SERVER_ID;
 			break;
 		case TAG_IP_LEASE:
-			printT(0, 0, "%s (%d)\n", "IP_LEASE", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "IP address Lease Time", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_SERVER_ID;
 			break;
 		case TAG_REBIND_TIME:
-			printT(0, 0, "%s (%d)\n", "REBIND_TIME", dhcp[*i]);
+			printT(0, 0, "%s (%d)\n", "Rebinding (T2) Time Value", dhcp[*i]);
 			*i = *i + 1;
 			length = dhcp[*i];
 			tag = TAG_SERVER_ID;
@@ -255,28 +255,28 @@ void typeDhcp(const u_int8_t val){
 	printT(1, DHCPSPACE+UNDERSPACE, "|-Message type : ");
 	switch (val) {
 		case DHCPDISCOVER:
-			printT(0, 0, "DHCPDISCOVER");
+			printT(0, 0, "DHCP Discovery");
 			break;
 		case DHCPOFFER:
-			printT(0, 0, "DHCPOFFER");
+			printT(0, 0, "DHCP Offer");
 			break;
 		case DHCPREQUEST:
-			printT(0, 0, "DHCPREQUEST");
+			printT(0, 0, "DHCP Request");
 			break;
 		case DHCPDECLINE:
 			printT(0, 0, "DHCPDECLINE");
 			break;
 		case DHCPACK:
-			printT(0, 0, "DHCPACK");
+			printT(0, 0, "DHCP Acknowledgement");
 			break;
 		case DHCPNAK:
-			printT(0, 0, "DHCPNAK");
+			printT(0, 0, "DHCP NAK");
 			break;
 		case DHCPRELEASE:
-			printT(0, 0, "DHCPRELEASE");
+			printT(0, 0, "DHCP Releasing");
 			break;
 		case DHCPINFORM:
-			printT(0, 0, "DHCPINFORM");
+			printT(0, 0, "DHCP Information");
 			break;
 		default:
 			printT(0, 0, "Unknown");
