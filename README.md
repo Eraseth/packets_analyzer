@@ -1,8 +1,8 @@
-# Analyseur de trames
-Un analyseur de trames en C. Utilisation de la librairie pcapp.
+# Packets analyzer
+An analyzer of packets to monitoring your interaction with your network. Work with libpcap (http://www.tcpdump.org/).
 
 ## Install
-  - Clone.
+  - Clone or download.
   - Go in the folder project.
   - Make.
   - Execute and enjoy (./Analyseur.out)
