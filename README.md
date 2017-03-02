@@ -6,6 +6,8 @@ An analyzer of packets to monitoring your interaction with your network. Work wi
   - Go in the folder project.
   - Make.
   - Execute and enjoy (./Analyseur.out)
+  
+libpcap is required.
 
 ## Parameters
 
