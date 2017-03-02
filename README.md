@@ -19,4 +19,4 @@ libpcap is required.
 | -f     | [filter]     | A filter (Example: -f "port 80"  |      |
 | -c  | /     | Enable colorization  | -s   |
 | -l  | [number]     | The number of packets you want to capture  |   |
-| -s  | [file]     | Print the result into a file instead the terminal |   |
+| -s  | [file]     | Print the result into a file instead the terminal |  -c |
