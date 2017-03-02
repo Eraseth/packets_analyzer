@@ -20,3 +20,9 @@ libpcap is required.
 | -c  | /     | Enable colorization  | -s   |
 | -l  | [number]     | The number of packets you want to capture  |   |
 | -s  | [file]     | Print the result into a file instead the terminal |  -c |
+
+## Screen
+
+![Screen of the result with colorization](/screen1.png?raw=true "Colorization result")
+
+![Screen of the result without colorization](/screen2.png?raw=true "Standard result")
