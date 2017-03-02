@@ -21,7 +21,7 @@ libpcap is required.
 | -l  | [number]     | The number of packets you want to capture  |   |
 | -s  | [file]     | Print the result into a file instead the terminal |  -c |
 
-## Screen
+## Screenshots
 
 ![Screen of the result with colorization](/screen1.png?raw=true "Colorization result")
 
