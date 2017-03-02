@@ -2,8 +2,9 @@
 #include <arpa/nameser_compat.h>
 #include "../../inc/analyseur.h"
 
+int danger; //Evite la recursivité infini
 void dns(const u_char *appHeader){
-
+	danger = 0;
 	HEADER *dns = (HEADER *) appHeader;
 
 	/*
@@ -260,6 +261,10 @@ size_t nameWhile(const u_char *appHeader, const u_char *dnsRr){
 }
 
 void nameRecur(const u_char *appHeader, int indiceStart){
+	if (danger > 1500) {
+		return ;
+	}
+	danger++;
 	const u_char *read = appHeader + indiceStart;
 	size_t indiceName = 0;
 	unsigned start;

@@ -65,9 +65,9 @@ void handleAppProtocol(const u_char *appData, int portD, int portS){
     //Puis avec le port source
     if (!switchPort(appData ,portS)) {
       if (coloration) {
-        printT(1, 8, KYEL"Application protocol doesn't supported (Port dest : %d. Port source : %d).\n"KNRM, portD, portS);
+        printT(2, 8, KYEL"Application protocol doesn't supported (Port dest : %d. Port source : %d).\n"KNRM, portD, portS);
       } else {
-        printT(1, 8, "Application protocol doesn't supported (Port dest : %d. Port source : %d).\n", portD, portS);
+        printT(2, 8, "Application protocol doesn't supported (Port dest : %d. Port source : %d).\n", portD, portS);
       }
     }
   }
